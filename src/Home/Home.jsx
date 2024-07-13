@@ -2,6 +2,8 @@ import React from "react";
 import { Helmet } from "react-helmet";
 import Banner from "../Banner/Banner";
 import Login from "../SignUp/Login";
+import Notice from "../Notice/Notice";
+import Honorable from "../Honor/Honorable";
 
 const Home = () => {
   return (
@@ -12,16 +14,11 @@ const Home = () => {
       <div className="flex flex-wrap">
         <div className="w-full md:w-3/4 p-2">
           <Banner />
+          <Honorable />
         </div>
         <div className="w-full md:w-1/4 p-2 space-y-4">
           <Login />
-          <div className="bg-white shadow-lg rounded-lg p-6">
-            <h2 className="text-xl font-bold mb-4">Information</h2>
-            <p className="text-gray-700">
-              Some additional information can go here. You can provide any
-              details or notices that are relevant to the users.
-            </p>
-          </div>
+          <Notice />
         </div>
       </div>
     </div>
