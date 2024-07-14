@@ -4,6 +4,7 @@ import Banner from "../Banner/Banner";
 import Login from "../SignUp/Login";
 import Notice from "../Notice/Notice";
 import Honorable from "../Honor/Honorable";
+import Banner2 from "../Banner/Banner2";
 
 const Home = () => {
   return (
@@ -20,6 +21,9 @@ const Home = () => {
           <Login />
           <Notice />
         </div>
+      </div>
+      <div>
+        <Banner2></Banner2>
       </div>
     </div>
   );
