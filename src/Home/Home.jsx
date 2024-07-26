@@ -5,6 +5,7 @@ import Login from "../SignUp/Login";
 import Notice from "../Notice/Notice";
 import Honorable from "../Honor/Honorable";
 import Banner2 from "../Banner/Banner2";
+import Members from "../Members/Members";
 
 const Home = () => {
   return (
@@ -24,6 +25,9 @@ const Home = () => {
       </div>
       <div>
         <Banner2></Banner2>
+      </div>
+      <div>
+        <Members></Members>
       </div>
     </div>
   );

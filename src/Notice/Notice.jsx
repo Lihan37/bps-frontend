@@ -25,7 +25,7 @@ const Notice = () => {
         <li className="mb-2">2024 update member list</li>
         <li className="mb-2">Annual Budget Report</li>
         <li className="mb-2">PDF - 2025 plan and upcoming ebook</li>
-        <li className="mb-2">Annual Budget Report</li>
+        <li className="mb-2">Annual Budget Report</li>   +
       </ul>
     </div>
   );
