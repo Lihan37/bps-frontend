@@ -6,6 +6,7 @@ import Notice from "../Notice/Notice";
 import Honorable from "../Honor/Honorable";
 import Banner2 from "../Banner/Banner2";
 import Members from "../Members/Members";
+import RecentActivities from "../RecentActivities/RecentsActivities";
 
 const Home = () => {
   return (
@@ -28,6 +29,9 @@ const Home = () => {
       </div>
       <div>
         <Members></Members>
+      </div>
+      <div>
+        <RecentActivities></RecentActivities>
       </div>
     </div>
   );
