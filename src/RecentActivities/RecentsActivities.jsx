@@ -4,7 +4,7 @@ import placeholderImage2 from "../assets/image 12.png";
 
 const RecentsActivities = () => {
   return (
-    <div className="mt-10 px-4 lg:px-0">
+    <div className="mt-10 lg:mt-16  px-4 lg:px-0">
       <div className="text-center mb-5">
         <button className="bg-[#0A6F8F] py-4 px-7 text-white font-semibold rounded-full">
           Recent Activities
@@ -73,6 +73,11 @@ const RecentsActivities = () => {
             </button>
           </div>
         </div>
+      </div>
+      <div className="flex justify-center">
+        <button className="bg-[#0A6F8F] py-4 px-7 mt-5 text-white font-semibold rounded-full">
+          View All News
+        </button>
       </div>
     </div>
   );
