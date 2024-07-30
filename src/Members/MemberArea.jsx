@@ -125,7 +125,7 @@ const MemberArea = () => {
 
     return (
       <div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-screen-2xl mx-auto p-4">
           {paginatedMembers.map((member, index) => (
             <div
               key={index}
@@ -146,10 +146,10 @@ const MemberArea = () => {
 
   return (
     <div className="mt-5">
-      <h2 className="bg-[#0A6F8F] p-8 text-center font-bold text-5xl text-white rounded-md">
+      <h2 className="bg-[#0A6F8F] p-8 text-center font-bold text-5xl text-white max-w-screen-2xl mx-auto rounded-md">
         Members
       </h2>
-      <div className="mt-5 p-4">
+      <div className="mt-5 p-4 max-w-screen-2xl mx-auto justify-start">
         <input
           type="text"
           value={searchTerm}
