@@ -5,6 +5,7 @@ import {
 import Main from "../Layouts/Main";
 import Home from "../Home/Home";
 import MemberArea from "../Members/MemberArea";
+import President from "../Notice/President";
 
   export const router = createBrowserRouter([
     {
@@ -18,6 +19,10 @@ import MemberArea from "../Members/MemberArea";
         {
             path: 'members',
             element: <MemberArea></MemberArea>
+        },
+        {
+            path: '/president',
+            element: <President></President>
         },
       ]
     },
