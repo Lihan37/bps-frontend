@@ -8,6 +8,7 @@ import Contact from "../Contact/Contact";
 import MemberArea from "../Members/MemberArea";
 import President from "../Notice/President";
 import NoticeBoard from "../Notice/NoticeBoard";
+import SignUp from "../SignUp/SignUp";
 
   export const router = createBrowserRouter([
     {
@@ -34,6 +35,11 @@ import NoticeBoard from "../Notice/NoticeBoard";
             path: '/contact',
             element: <Contact></Contact>
         },
+        {
+            path: '/signUp',
+            element: <SignUp></SignUp>
+        }
+
       ]
     },
   ]);
