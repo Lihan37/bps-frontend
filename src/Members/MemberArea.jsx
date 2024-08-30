@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 
 const MemberArea = () => {
   const [activeTab, setActiveTab] = useState("Life Member");
@@ -16,14 +17,19 @@ const MemberArea = () => {
   const itemsPerPage = 15;
 
   useEffect(() => {
-    fetch('/members.json')
-      .then(response => response.json())
-      .then(data => {
-        console.log('Fetched members data:', data); 
-        setMembersData(data);
+    axios.get('http://localhost:5000/members')
+      .then(response => {
+        console.log('Fetched members data:', response.data);
+        if (response.data.members) {
+          setMembersData(response.data);
+        } else {
+          console.error('Invalid data format:', response.data);
+        }
       })
       .catch(error => console.error('Error fetching members data:', error));
   }, []);
+  
+  
 
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);
@@ -31,7 +37,7 @@ const MemberArea = () => {
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
-    setCurrentPage(1); 
+    setCurrentPage(1);
   };
 
   const renderPagination = () => {
@@ -108,20 +114,18 @@ const MemberArea = () => {
     const currentTab = tabs.find(tab => tab.label === activeTab);
     const memberType = currentTab ? currentTab.key : '';
     const filteredMembers = membersData.members[memberType] || [];
-    
-    
+
     const searchLowerCase = searchTerm.toLowerCase();
     const filteredBySearch = filteredMembers.filter(member =>
       member.name.toLowerCase().includes(searchLowerCase) ||
       member.designation.toLowerCase().includes(searchLowerCase)
     );
 
-    
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const paginatedMembers = filteredBySearch.slice(startIndex, endIndex);
 
-    console.log('Filtered members:', paginatedMembers); 
+    console.log('Filtered members:', paginatedMembers);
 
     return (
       <div>
@@ -131,11 +135,16 @@ const MemberArea = () => {
               key={index}
               className={`bg-[#${index % 2 === 0 ? '0D8FBC' : '15D4BC'}] p-6 rounded-lg text-white flex flex-col items-center shadow-lg`}
             >
-              {/* Placeholder for image */}
-              <div className="rounded-full mb-4 w-32 h-32 bg-gray-300" />
-
+              {/* Show the image if available */}
+              {member.image && (
+                <img
+                  src={member.image}
+                  alt={member.name}
+                  className="rounded-full mb-4 w-32 h-32 object-cover"
+                />
+              )}
               <h3 className="text-lg font-bold">{member.name}</h3>
-              <p className="text-sm">{member.designation}</p>
+              <p className="text-sm">{member.nationality}</p>
             </div>
           ))}
         </div>
@@ -168,8 +177,8 @@ const MemberArea = () => {
               }`}
               onClick={() => {
                 setActiveTab(tab.label);
-                setCurrentPage(1); 
-                setSearchTerm(""); 
+                setCurrentPage(1);
+                setSearchTerm("");
               }}
             >
               {tab.label}
