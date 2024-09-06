@@ -9,6 +9,8 @@ import MemberArea from "../Members/MemberArea";
 import President from "../Notice/President";
 import NoticeBoard from "../Notice/NoticeBoard";
 import SignUp from "../SignUp/SignUp";
+import Gallery from "../Gallery/Gallery";
+import Publication from "../Notice/Publication";
 
   export const router = createBrowserRouter([
     {
@@ -32,12 +34,20 @@ import SignUp from "../SignUp/SignUp";
             element: <NoticeBoard></NoticeBoard>
         },
         {
+            path: '/publications',
+            element: <Publication></Publication>
+        },
+        {
             path: '/contact',
             element: <Contact></Contact>
         },
         {
             path: '/signUp',
             element: <SignUp></SignUp>
+        },
+        {
+            path: '/gallery',
+            element: <Gallery></Gallery>
         }
 
       ]

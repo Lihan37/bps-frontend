@@ -5,10 +5,15 @@ import logo from "../assets/bps-t.png";
 const Navbar2 = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
+  const [isMobileDropdownVisible, setIsMobileDropdownVisible] = useState(false);
   let timeoutId;
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
+  };
+
+  const toggleMobileDropdown = () => {
+    setIsMobileDropdownVisible(!isMobileDropdownVisible);
   };
 
   const showDropdown = () => {
@@ -81,9 +86,9 @@ const Navbar2 = () => {
             onMouseEnter={showDropdown}
             onMouseLeave={hideDropdown}
           >
-            <Link to="/about" className="text-gray-800 hover:text-blue-500">
+            <span className="text-gray-800 hover:text-blue-500 cursor-pointer">
               About Us
-            </Link>
+            </span>
             {isDropdownVisible && (
               <div
                 className="absolute left-0 mt-2 w-60 bg-white border rounded-lg shadow-lg p-4"
@@ -138,12 +143,36 @@ const Navbar2 = () => {
             <Link to="/" className="block text-gray-800 hover:text-blue-500">
               Home
             </Link>
-            <Link
-              to="/about"
-              className="block text-gray-800 hover:text-blue-500"
-            >
-              About Us
-            </Link>
+            <div>
+              <button
+                onClick={toggleMobileDropdown}
+                className="w-full text-left block text-gray-800 hover:text-blue-500"
+              >
+                About Us
+              </button>
+              {isMobileDropdownVisible && (
+                <div className="bg-white border rounded-lg shadow-lg p-4 mt-2">
+                  <Link
+                    to="/president"
+                    className="block px-4 py-2 text-gray-800 hover:bg-gray-200 rounded-md transition duration-200 border-b border-gray-300"
+                  >
+                    President's Message
+                  </Link>
+                  <Link
+                    to="/history"
+                    className="block px-4 py-2 text-gray-800 hover:bg-gray-200 rounded-md transition duration-200 border-b border-gray-300"
+                  >
+                    History
+                  </Link>
+                  <Link
+                    to="/mission"
+                    className="block px-4 py-2 text-gray-800 hover:bg-gray-200 rounded-md transition duration-200 border-b border-gray-300"
+                  >
+                    Mission & Vision
+                  </Link>
+                </div>
+              )}
+            </div>
             <Link
               to="/members"
               className="block text-gray-800 hover:text-blue-500"
