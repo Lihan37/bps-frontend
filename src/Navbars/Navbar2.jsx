@@ -34,12 +34,12 @@ const Navbar2 = () => {
     <nav className="bg-white shadow-md relative z-50">
       <div className="container mx-auto px-4 py-2 flex justify-between items-center">
         {/* Logo and Title */}
-        <div className="flex items-center">
+        <Link to="/" className="flex items-center">
           <img src={logo} alt="Logo" className="h-10 mr-3" />
           <span className="text-xl font-bold text-gray-800">
             Bangladesh Physiotherapy Society
           </span>
-        </div>
+        </Link>
         {/* Mobile Menu Button */}
         <div className="md:hidden">
           <button
