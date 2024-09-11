@@ -11,6 +11,7 @@ import NoticeBoard from "../Notice/NoticeBoard";
 import SignUp from "../SignUp/SignUp";
 import Gallery from "../Gallery/Gallery";
 import Publication from "../Notice/Publication";
+import Users from "../Members/Users";
 
   export const router = createBrowserRouter([
     {
@@ -48,6 +49,10 @@ import Publication from "../Notice/Publication";
         {
             path: '/gallery',
             element: <Gallery></Gallery>
+        },
+        {
+            path: '/users',
+            element: <Users></Users>
         }
 
       ]

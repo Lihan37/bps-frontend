@@ -113,6 +113,12 @@ const Navbar2 = () => {
                 >
                   Mission & Vision
                 </Link>
+                <Link
+                  to="/users"
+                  className="block px-4 py-2 text-gray-800 hover:bg-gray-200 rounded-md transition duration-200 border-b border-gray-300"
+                >
+                  All Users
+                </Link>
               </div>
             )}
           </div>
@@ -169,6 +175,12 @@ const Navbar2 = () => {
                     className="block px-4 py-2 text-gray-800 hover:bg-gray-200 rounded-md transition duration-200 border-b border-gray-300"
                   >
                     Mission & Vision
+                  </Link>
+                  <Link
+                    to="/users"
+                    className="block px-4 py-2 text-gray-800 hover:bg-gray-200 rounded-md transition duration-200 border-b border-gray-300"
+                  >
+                    All Users
                   </Link>
                 </div>
               )}

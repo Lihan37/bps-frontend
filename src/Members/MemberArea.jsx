@@ -1,23 +1,23 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 
 const MemberArea = () => {
   const [members, setMembers] = useState([]);
   const [filteredMembers, setFilteredMembers] = useState([]);
-  const [activeTab, setActiveTab] = useState('Life');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState("Life");
+  const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const membersPerPage = 8; 
+  const membersPerPage = 8;
 
   useEffect(() => {
     // Fetch members from the backend
     const fetchMembers = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/members');
+        const response = await axios.get("http://localhost:5000/members");
         setMembers(response.data);
-        console.log('Fetched members:', response.data);
+        console.log("Fetched members:", response.data);
       } catch (error) {
-        console.error('Error fetching members:', error);
+        console.error("Error fetching members:", error);
       }
     };
 
@@ -31,11 +31,12 @@ const MemberArea = () => {
         (member) => member.membership === activeTab
       );
 
-      if (searchQuery.trim() !== '') {
+      if (searchQuery.trim() !== "") {
         const query = searchQuery.toLowerCase();
-        filtered = filtered.filter(member =>
-          member.fullName.toLowerCase().includes(query) ||
-          member.nationality.toLowerCase().includes(query)
+        filtered = filtered.filter(
+          (member) =>
+            member.fullName.toLowerCase().includes(query) ||
+            member.nationality.toLowerCase().includes(query)
         );
       }
 
@@ -56,7 +57,10 @@ const MemberArea = () => {
 
   const indexOfLastMember = currentPage * membersPerPage;
   const indexOfFirstMember = indexOfLastMember - membersPerPage;
-  const currentMembers = filteredMembers.slice(indexOfFirstMember, indexOfLastMember);
+  const currentMembers = filteredMembers.slice(
+    indexOfFirstMember,
+    indexOfLastMember
+  );
   const totalPages = Math.ceil(filteredMembers.length / membersPerPage);
 
   // Generate page numbers array
@@ -67,14 +71,17 @@ const MemberArea = () => {
 
   return (
     <div className="p-6 max-w-screen-2xl mx-auto">
+      <h2 className="bg-[#0A6F8F] p-8 text-center font-bold mb-10 text-5xl text-white max-w-screen-2xl mx-auto rounded-md">
+        Members
+      </h2>
       {/* Tabs Navigation */}
       <div className="flex justify-center mb-6">
-        {['General', 'Life', 'EC', 'SC'].map((tab) => (
+        {["General", "Life", "EC", "SC"].map((tab) => (
           <button
             key={tab}
             onClick={() => handleTabClick(tab)}
             className={`px-4 py-2 mx-2 text-white rounded-lg ${
-              activeTab === tab ? 'bg-blue-600' : 'bg-gray-400'
+              activeTab === tab ? "bg-blue-600" : "bg-gray-400"
             }`}
           >
             {tab} Member
@@ -102,7 +109,7 @@ const MemberArea = () => {
               className="bg-[#0D8FBC] p-6 rounded-lg text-white flex flex-col items-center"
             >
               <img
-                src={member.imageUrl || 'https://via.placeholder.com/150'}
+                src={member.imageUrl || "https://via.placeholder.com/150"}
                 alt={member.fullName}
                 className="rounded-full mb-4 w-32 h-32 object-cover"
               />
@@ -112,7 +119,9 @@ const MemberArea = () => {
             </div>
           ))
         ) : (
-          <p className="col-span-full text-center text-gray-500">No members found.</p>
+          <p className="col-span-full text-center text-gray-500">
+            No members found.
+          </p>
         )}
       </div>
 
@@ -123,7 +132,9 @@ const MemberArea = () => {
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
             className={`px-4 py-2 border border-gray-300 rounded-l-lg ${
-              currentPage === 1 ? 'cursor-not-allowed bg-gray-200 text-gray-500' : 'bg-white text-gray-700 hover:bg-gray-100'
+              currentPage === 1
+                ? "cursor-not-allowed bg-gray-200 text-gray-500"
+                : "bg-white text-gray-700 hover:bg-gray-100"
             }`}
           >
             Previous
@@ -133,7 +144,9 @@ const MemberArea = () => {
               key={number}
               onClick={() => handlePageChange(number)}
               className={`px-4 py-2 border border-gray-300 ${
-                number === currentPage ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'
+                number === currentPage
+                  ? "bg-blue-600 text-white"
+                  : "bg-white text-gray-700 hover:bg-gray-100"
               }`}
             >
               {number}
@@ -143,7 +156,9 @@ const MemberArea = () => {
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
             className={`px-4 py-2 border border-gray-300 rounded-r-lg ${
-              currentPage === totalPages ? 'cursor-not-allowed bg-gray-200 text-gray-500' : 'bg-white text-gray-700 hover:bg-gray-100'
+              currentPage === totalPages
+                ? "cursor-not-allowed bg-gray-200 text-gray-500"
+                : "bg-white text-gray-700 hover:bg-gray-100"
             }`}
           >
             Next
