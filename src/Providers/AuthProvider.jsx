@@ -9,7 +9,6 @@ import {
 import { app } from "../Firebase/firebase.config";
 import UseAxiosPublic from "../Hooks/UseAxiosPublic";
 
-
 export const AuthContext = createContext(null);
 const auth = getAuth(app);
 
@@ -53,7 +52,7 @@ const AuthProvider = ({ children }) => {
     return () => {
       return unsubscribe();
     };
-  }, [axiosPublic]);
+  }, []);
 
   const authInfo = {
     user,

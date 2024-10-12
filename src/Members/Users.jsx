@@ -1,17 +1,26 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
+import UseAdmin from "../Hooks/UseAdmin";
+import { Link } from "react-router-dom";
 
 const Users = () => {
   const [users, setUsers] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [usersPerPage] = useState(10); // Number of users per page
-  const [searchTerm, setSearchTerm] = useState(""); // Search state
+  const [usersPerPage] = useState(10);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isAdmin, isAdminLoading] = UseAdmin(); // Use the UseAdmin hook
 
   // Function to fetch users from the API
   const fetchUsers = () => {
+    const token = localStorage.getItem("access-token");
+
     axios
-      .get("http://localhost:5000/members")
+      .get("http://localhost:5000/members", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
       .then((response) => {
         setUsers(response.data);
       })
@@ -21,7 +30,6 @@ const Users = () => {
   };
 
   useEffect(() => {
-    // Fetch all users when the component mounts
     fetchUsers();
   }, []);
 
@@ -57,7 +65,9 @@ const Users = () => {
   const toggleAdminRole = (id, currentRole) => {
     Swal.fire({
       title: "Are you sure?",
-      text: `Do you want to ${currentRole === "admin" ? "remove admin rights" : "make admin"} for this user?`,
+      text: `Do you want to ${
+        currentRole === "admin" ? "remove admin rights" : "make admin"
+      } for this user?`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
@@ -77,7 +87,9 @@ const Users = () => {
             // Update the local state to reflect the role change
             setUsers((prevUsers) =>
               prevUsers.map((user) =>
-                user._id === id ? { ...user, role: response.data.newRole } : user
+                user._id === id
+                  ? { ...user, role: response.data.newRole }
+                  : user
               )
             );
           })
@@ -105,7 +117,9 @@ const Users = () => {
           .then((response) => {
             Swal.fire(
               response.data.newStatus ? "Blocked" : "Unblocked",
-              `User has been ${response.data.newStatus ? "blocked" : "unblocked"}!`,
+              `User has been ${
+                response.data.newStatus ? "blocked" : "unblocked"
+              }!`,
               "info"
             );
             // Refetch users to update the state
@@ -144,6 +158,10 @@ const Users = () => {
       }
     });
   };
+
+  if (isAdminLoading) {
+    return <div>Loading...</div>; // Show a loading state if admin status is loading
+  }
 
   return (
     <div className="container mx-auto p-4">
@@ -185,30 +203,37 @@ const Users = () => {
                   {user.role || "user"} {/* Default role is 'user' */}
                 </td>
                 <td className="px-4 py-2 border">
-                  {/* Role actions */}
-                  <button
-                    className={`${
-                      user.role === "admin"
-                        ? "bg-red-500"
-                        : "bg-blue-500"
-                    } text-white px-4 py-2 mr-2 rounded`}
-                    onClick={() => toggleAdminRole(user._id, user.role)}
-                  >
-                    {user.role === "admin" ? "Remove Admin" : "Make Admin"}
-                  </button>
-                  {/* Block and delete actions */}
-                  <button
-                    className="bg-yellow-500 text-white px-4 py-2 mr-2 rounded"
-                    onClick={() => blockUser(user._id, user.blocked)}
-                  >
-                    {user.blocked ? "Unblock" : "Block"}
-                  </button>
-                  <button
-                    className="bg-red-500 text-white px-4 py-2 rounded"
-                    onClick={() => deleteUser(user._id)}
-                  >
-                    Delete
-                  </button>
+                  {isAdmin && (
+                    <>
+                      <button
+                        className={`${
+                          user.role === "admin" ? "bg-red-500" : "bg-blue-500"
+                        } text-white px-4 py-2 mr-2 rounded`}
+                        onClick={() => toggleAdminRole(user._id, user.role)}
+                      >
+                        {user.role === "admin" ? "Remove Admin" : "Make Admin"}
+                      </button>
+                      <button
+                        className="bg-yellow-500 text-white px-4 py-2 mr-2 rounded"
+                        onClick={() => blockUser(user._id, user.blocked)}
+                      >
+                        {user.blocked ? "Unblock" : "Block"}
+                      </button>
+                      <button
+                        className="bg-red-500 text-white px-4 py-2 mr-2 rounded"
+                        onClick={() => deleteUser(user._id)}
+                      >
+                        Delete
+                      </button>
+                      {/* Add a View Profile button styled like others but with Link */}
+                      <Link
+                        to={`/user/profile/${user.email}`}
+                        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                      >
+                        View Profile
+                      </Link>
+                    </>
+                  )}
                 </td>
               </tr>
             ))}

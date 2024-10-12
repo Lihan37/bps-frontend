@@ -9,24 +9,59 @@ const SignUp = () => {
     fullName: "",
     fatherName: "",
     motherName: "",
-    maritalStatus: "Single",
-    nationalId: "",
+    sex: "M",
     dateOfBirth: "",
-    age: "",
-    placeOfBirth: "",
     nationality: "Bangladeshi",
-    gender: "Male",
-    officePhone: "",
-    mobile: "",
-    residenceNumber: "",
+    nationalId: "",
+    permanentAddress: "",
+    presentAddress: "",
+    village: "",
+    phoneNumber: "",
     email: "",
     membership: "General",
-    membershipId: "",
-    center: "",
-    imageUrl: "",
     password: "",
+    imageUrls: [],
+    education: {
+      ssc: {
+        passingYear: "",
+        board: "",
+        registrationNo: "",
+        school: "",
+        file: null,
+      },
+      hsc: {
+        passingYear: "",
+        board: "",
+        registrationNo: "",
+        school: "",
+        file: null,
+      },
+      diploma: {
+        passingYear: "",
+        board: "",
+        registrationNo: "",
+        school: "",
+        file: null,
+      },
+    },
+    professional: {
+      bpt: { university: "", institute: "", passingYear: "", file: null },
+      mpt: { university: "", institute: "", passingYear: "", file: null },
+      others: { university: "", institute: "", passingYear: "", file: null },
+    },
+    otherMembership: "",
+    additionalParticulars: "",
+    payment: {
+      amount: "500",
+      method: "cash",
+      ddNo: "",
+      date: "",
+      bank: "",
+    },
+    agreeToTerms: false,
+    signatureFile: null, // For signature of applicant
   });
-  const [password, setPassword] = useState("");
+
   const [passwordError, setPasswordError] = useState("");
   const { createUser } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -62,86 +97,164 @@ const SignUp = () => {
     setFormData({ ...formData, [id]: value });
   };
 
-  const handleImageUpload = async (e) => {
+  const handleFileChange = (e, section, field) => {
     const file = e.target.files[0];
     if (file) {
+      setFormData({
+        ...formData,
+        [section]: {
+          ...formData[section],
+          [field]: { ...formData[section][field], file },
+        },
+      });
+    }
+  };
+
+  const handleImageUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    const imageUrls = [];
+
+    for (let file of files) {
       const uploadFormData = new FormData();
       uploadFormData.append("image", file);
 
       try {
         const response = await axios.post(
-          `https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_IMGBB_API_KEY}`,
+          `https://api.imgbb.com/1/upload?key=${
+            import.meta.env.VITE_IMGBB_API_KEY
+          }`,
           uploadFormData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          }
+          { headers: { "Content-Type": "multipart/form-data" } }
         );
-
         if (response.data.success) {
-          const imageUrl = response.data.data.display_url;
-          setFormData((prevData) => ({ ...prevData, imageUrl }));
-
-          Swal.fire({
-            title: "Success!",
-            text: "Image uploaded successfully.",
-            icon: "success",
-            confirmButtonText: "OK",
-          });
+          imageUrls.push(response.data.data.display_url);
         } else {
           throw new Error("Failed to upload image");
         }
       } catch (error) {
         Swal.fire({
           title: "Error!",
-          text: "Failed to upload image. Please try again.",
+          text: "Failed to upload image.",
           icon: "error",
           confirmButtonText: "OK",
         });
       }
     }
+
+    setFormData((prevData) => ({ ...prevData, imageUrls }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const passwordValidationError = validatePassword(password);
 
+    // Password validation
+    const passwordValidationError = validatePassword(formData.password);
     if (passwordValidationError) {
       setPasswordError(passwordValidationError);
       return;
     }
 
     try {
-      if (!formData.email || !password) {
+      if (!formData.email || !formData.password) {
         throw new Error("Email and password must be provided.");
       }
 
-      // Create the user with email and password
-      const userCredential = await createUser(formData.email, password);
-      const userId = userCredential.user.uid;
+      // Function to upload files (PDFs)
+      const uploadFiles = async (file) => {
+        const uploadFormData = new FormData();
+        uploadFormData.append("file", file);
 
-      // Log formData to ensure imageUrl is present
-      console.log("FormData before submission:", formData);
+        const response = await axios.post(
+          "http://localhost:5000/upload-pdf", // Adjust this URL if needed
+          uploadFormData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
+        );
 
-      // Send the form data to the backend
-      const response = await axios.post("http://localhost:5000/members", {
-        ...formData,
-        userId: userId,
-      });
+        return response.data.filePath; // The file path on the server
+      };
 
+      // Upload PDFs for education fields
+      for (const key of ["ssc", "hsc", "diploma"]) {
+        if (formData.education[key].file) {
+          const filePath = await uploadFiles(formData.education[key].file);
+          formData.education[key].file = filePath; // Update with the file path
+        }
+      }
+
+      // Upload PDFs for professional fields
+      for (const key of ["bpt", "mpt", "others"]) {
+        if (formData.professional[key].file) {
+          const filePath = await uploadFiles(formData.professional[key].file);
+          formData.professional[key].file = filePath; // Update with the file path
+        }
+      }
+
+      // Upload signature if available
+      if (formData.signatureFile) {
+        const signaturePath = await uploadFiles(formData.signatureFile);
+        formData.signatureFile = signaturePath;
+      }
+
+      // Image upload if there are any images
+      if (formData.imageUrls.length > 0) {
+        const uploadImages = async () => {
+          const imageUrls = [];
+          for (let image of formData.imageUrls) {
+            const uploadFormData = new FormData();
+            uploadFormData.append("image", image);
+
+            const response = await axios.post(
+              `https://api.imgbb.com/1/upload?key=${
+                import.meta.env.VITE_IMGBB_API_KEY
+              }`,
+              uploadFormData,
+              {
+                headers: { "Content-Type": "multipart/form-data" },
+              }
+            );
+
+            if (response.data.success) {
+              imageUrls.push(response.data.data.display_url);
+            } else {
+              throw new Error("Failed to upload images.");
+            }
+          }
+          return imageUrls;
+        };
+
+        formData.imageUrls = await uploadImages();
+      }
+
+      // Create user and save form data to the database
+      const userCredential = await createUser(
+        formData.email,
+        formData.password
+      );
+      formData.userId = userCredential.user.uid;
+
+      // Post form data to the backend
+      const response = await axios.post(
+        "http://localhost:5000/members",
+        formData
+      );
+
+      // Show success message and navigate
       Swal.fire({
         title: "Success!",
-        text: "Account created and data submitted successfully.",
+        text: "Account created successfully.",
         icon: "success",
         confirmButtonText: "OK",
       }).then(() => {
-        navigate("/");
+        navigate("/"); // Navigate to home or any other page after success
       });
     } catch (error) {
+      // Error handling for form submission
+      console.error("Error during form submission:", error); // Logging error
       Swal.fire({
         title: "Error!",
-        text: error.message,
+        text: error.message || "Failed to submit the form. Please try again.",
         icon: "error",
         confirmButtonText: "OK",
       });
@@ -149,17 +262,54 @@ const SignUp = () => {
   };
 
   return (
-    <div className="max-w-4xl mt-10 mx-auto p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-3xl font-semibold text-center mb-6">Sign Up</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          {/* Full Name */}
-          <div>
-            <label
-              htmlFor="fullName"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Full Name
+    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+      <div className="max-w-6xl bg-white p-10 rounded-lg shadow-xl w-full">
+        {/* Secretary General Section */}
+        <div className="mb-6 text-center bg-blue-100 p-4 rounded-lg">
+          <h2 className="text-3xl font-bold text-blue-700">Membership Form</h2>
+          <p className="text-gray-700 mt-2">
+            The Secretary General <br />
+            Bangladesh Physiotherapy Society (BPS) <br />
+            Sir, <br />
+            Please update my information/enroll me as a primary member of the
+            BPS.
+          </p>
+        </div>
+
+        <form
+          onSubmit={handleSubmit}
+          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+        >
+          {/* Image Upload Section */}
+          <div className="flex flex-col items-center md:col-span-2">
+            <label className="text-lg font-semibold mb-4">
+              Upload Passport Size Photo (2 copies)
+            </label>
+            <input
+              type="file"
+              id="imageUpload"
+              onChange={handleImageUpload}
+              multiple
+              className="border border-gray-300 rounded-lg p-2 w-full"
+            />
+            {formData.imageUrls.length > 0 && (
+              <div className="mt-4 flex space-x-4">
+                {formData.imageUrls.map((url, index) => (
+                  <img
+                    key={index}
+                    src={url}
+                    alt={`Uploaded Preview ${index + 1}`}
+                    className="w-24 h-24 object-cover rounded-full shadow-md"
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Personal Information Fields */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">
+              Name (Mr/Ms/Mrs)
             </label>
             <input
               type="text"
@@ -167,16 +317,11 @@ const SignUp = () => {
               value={formData.fullName}
               onChange={handleInputChange}
               required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-
-          {/* Father's Name */}
-          <div>
-            <label
-              htmlFor="fatherName"
-              className="block text-sm font-medium text-gray-700"
-            >
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">
               Father's Name
             </label>
             <input
@@ -185,16 +330,11 @@ const SignUp = () => {
               value={formData.fatherName}
               onChange={handleInputChange}
               required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-
-          {/* Mother's Name */}
-          <div>
-            <label
-              htmlFor="motherName"
-              className="block text-sm font-medium text-gray-700"
-            >
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">
               Mother's Name
             </label>
             <input
@@ -203,55 +343,26 @@ const SignUp = () => {
               value={formData.motherName}
               onChange={handleInputChange}
               required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-
-          {/* Marital Status */}
-          <div>
-            <label
-              htmlFor="maritalStatus"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Marital Status
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">
+              Sex (M/F)
             </label>
             <select
-              id="maritalStatus"
-              value={formData.maritalStatus}
+              id="sex"
+              value={formData.sex}
               onChange={handleInputChange}
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="Single">Single</option>
-              <option value="Married">Married</option>
+              <option value="M">Male</option>
+              <option value="F">Female</option>
             </select>
           </div>
-
-          {/* National ID */}
-          <div>
-            <label
-              htmlFor="nationalId"
-              className="block text-sm font-medium text-gray-700"
-            >
-              National ID
-            </label>
-            <input
-              type="text"
-              id="nationalId"
-              value={formData.nationalId}
-              onChange={handleInputChange}
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
-            />
-          </div>
-
-          {/* Date of Birth */}
-          <div>
-            <label
-              htmlFor="dateOfBirth"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Date of Birth
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">
+              Date of Birth (DD/MM/YY)
             </label>
             <input
               type="date"
@@ -259,147 +370,113 @@ const SignUp = () => {
               value={formData.dateOfBirth}
               onChange={handleInputChange}
               required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-
-          {/* Age */}
-          <div>
-            <label
-              htmlFor="age"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Age
-            </label>
-            <input
-              type="number"
-              id="age"
-              value={formData.age}
-              onChange={handleInputChange}
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
-            />
-          </div>
-
-          {/* Place of Birth */}
-          <div>
-            <label
-              htmlFor="placeOfBirth"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Place of Birth
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">
+              Nationality
             </label>
             <input
               type="text"
-              id="placeOfBirth"
-              value={formData.placeOfBirth}
-              onChange={handleInputChange}
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
-            />
-          </div>
-
-          {/* Nationality */}
-          <div>
-            <label
-              htmlFor="nationality"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Nationality
-            </label>
-            <select
               id="nationality"
               value={formData.nationality}
               onChange={handleInputChange}
               required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
-            >
-              <option value="Bangladeshi">Bangladeshi</option>
-              <option value="Other">Other</option>
-            </select>
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </div>
-
-          {/* Gender */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">
+              National ID No.
+            </label>
+            <input
+              type="text"
+              id="nationalId"
+              value={formData.nationalId}
+              onChange={handleInputChange}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">
+              Permanent Address
+            </label>
+            <input
+              type="text"
+              id="permanentAddress"
+              value={formData.permanentAddress}
+              onChange={handleInputChange}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">
+              Present Address
+            </label>
+            <input
+              type="text"
+              id="presentAddress"
+              value={formData.presentAddress}
+              onChange={handleInputChange}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">
+              Village
+            </label>
+            <input
+              type="text"
+              id="village"
+              value={formData.village}
+              onChange={handleInputChange}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">
+              Telephone/ Mobile
+            </label>
+            <input
+              type="tel"
+              id="phoneNumber"
+              value={formData.phoneNumber}
+              onChange={handleInputChange}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          {/* Membership Type Selection */}
           <div>
             <label
-              htmlFor="gender"
+              htmlFor="membership"
               className="block text-sm font-medium text-gray-700"
             >
-              Gender
+              Membership Type
             </label>
             <select
-              id="gender"
-              value={formData.gender}
-              onChange={handleInputChange}
+              id="membership"
+              value={formData.membership}
+              onChange={(e) =>
+                setFormData({ ...formData, membership: e.target.value })
+              }
               required
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
             >
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
+              <option value="General">General Member</option>
+              <option value="Life">Life Member</option>
+              
             </select>
           </div>
 
-          {/* Office Phone */}
-          <div>
-            <label
-              htmlFor="officePhone"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Office Phone
-            </label>
-            <input
-              type="text"
-              id="officePhone"
-              value={formData.officePhone}
-              onChange={handleInputChange}
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
-            />
-          </div>
-
-          {/* Mobile */}
-          <div>
-            <label
-              htmlFor="mobile"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Mobile
-            </label>
-            <input
-              type="text"
-              id="mobile"
-              value={formData.mobile}
-              onChange={handleInputChange}
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
-            />
-          </div>
-
-          {/* Residence Number */}
-          <div>
-            <label
-              htmlFor="residenceNumber"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Residence Number
-            </label>
-            <input
-              type="text"
-              id="residenceNumber"
-              value={formData.residenceNumber}
-              onChange={handleInputChange}
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
-            />
-          </div>
-
-          {/* Email */}
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Email
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">
+              E-mail
             </label>
             <input
               type="email"
@@ -407,120 +484,378 @@ const SignUp = () => {
               value={formData.email}
               onChange={handleInputChange}
               required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-
-          {/* Membership */}
-          <div>
-            <label
-              htmlFor="membership"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Membership
-            </label>
-            <select
-              id="membership"
-              value={formData.membership}
-              onChange={handleInputChange}
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
-            >
-              <option value="General">General</option>
-              <option value="Life">Life</option>
-              <option value="EC">EC</option>
-              <option value="SC">SC</option>
-            </select>
-          </div>
-
-          {/* Membership ID */}
-          <div>
-            <label
-              htmlFor="membershipId"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Membership ID
-            </label>
-            <input
-              type="text"
-              id="membershipId"
-              value={formData.membershipId}
-              onChange={handleInputChange}
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
-            />
-          </div>
-
-          {/* Center */}
-          <div>
-            <label
-              htmlFor="center"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Center
-            </label>
-            <input
-              type="text"
-              id="center"
-              value={formData.center}
-              onChange={handleInputChange}
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
-            />
-          </div>
-
-          {/* Image Upload */}
-          <div>
-            <label
-              htmlFor="imageUpload"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Image Upload
-            </label>
-            <input
-              type="file"
-              id="imageUpload"
-              onChange={handleImageUpload}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
-            />
-            {formData.imageUrl && (
-              <img
-                src={formData.imageUrl}
-                alt="Uploaded Preview"
-                className="mt-2 w-32 h-32 object-cover rounded-md"
-              />
-            )}
-          </div>
-
-          {/* Password */}
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
-            >
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">
               Password
             </label>
             <input
               type="password"
               id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={formData.password}
+              onChange={handleInputChange}
               required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             {passwordError && (
               <p className="text-red-500 text-sm mt-1">{passwordError}</p>
             )}
           </div>
-        </div>
 
-        <button
-          type="submit"
-          className="w-full bg-blue-500 text-white py-2 px-4 rounded-md shadow-sm hover:bg-blue-600"
-        >
-          Sign Up
-        </button>
-      </form>
+          {/* Education and Professional Qualification Tables */}
+          <div className="col-span-2">
+            <h3 className="text-lg font-bold mt-4">
+              Educational Qualifications
+            </h3>
+            <table className="w-full border mt-2">
+              <thead>
+                <tr>
+                  <th>Degree/Diploma</th>
+                  <th>Passing Year</th>
+                  <th>Name of Board/Faculty</th>
+                  <th>Registration no</th>
+                  <th>Name of school/College/institute</th>
+                  <th>Attach File</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.keys(formData.education).map((qualification) => (
+                  <tr key={qualification}>
+                    <td>{qualification.toUpperCase()}</td>
+                    <td>
+                      <input
+                        type="text"
+                        className="w-full px-2 py-1 border"
+                        value={formData.education[qualification].passingYear}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            education: {
+                              ...formData.education,
+                              [qualification]: {
+                                ...formData.education[qualification],
+                                passingYear: e.target.value,
+                              },
+                            },
+                          })
+                        }
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        className="w-full px-2 py-1 border"
+                        value={formData.education[qualification].board}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            education: {
+                              ...formData.education,
+                              [qualification]: {
+                                ...formData.education[qualification],
+                                board: e.target.value,
+                              },
+                            },
+                          })
+                        }
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        className="w-full px-2 py-1 border"
+                        value={formData.education[qualification].registrationNo}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            education: {
+                              ...formData.education,
+                              [qualification]: {
+                                ...formData.education[qualification],
+                                registrationNo: e.target.value,
+                              },
+                            },
+                          })
+                        }
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        className="w-full px-2 py-1 border"
+                        value={formData.education[qualification].school}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            education: {
+                              ...formData.education,
+                              [qualification]: {
+                                ...formData.education[qualification],
+                                school: e.target.value,
+                              },
+                            },
+                          })
+                        }
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="file"
+                        onChange={(e) =>
+                          handleFileChange(e, "education", qualification)
+                        }
+                        className="border border-gray-300 rounded-lg p-2"
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            <h3 className="text-lg font-bold mt-4">
+              Professional Qualifications
+            </h3>
+            <table className="w-full border mt-2">
+              <thead>
+                <tr>
+                  <th>Degree/Exam</th>
+                  <th>Name of university</th>
+                  <th>Name of institute</th>
+                  <th>Year of passing</th>
+                  <th>Attach File</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.keys(formData.professional).map((qualification) => (
+                  <tr key={qualification}>
+                    <td>{qualification.toUpperCase()}</td>
+                    <td>
+                      <input
+                        type="text"
+                        className="w-full px-2 py-1 border"
+                        value={formData.professional[qualification].university}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            professional: {
+                              ...formData.professional,
+                              [qualification]: {
+                                ...formData.professional[qualification],
+                                university: e.target.value,
+                              },
+                            },
+                          })
+                        }
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        className="w-full px-2 py-1 border"
+                        value={formData.professional[qualification].institute}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            professional: {
+                              ...formData.professional,
+                              [qualification]: {
+                                ...formData.professional[qualification],
+                                institute: e.target.value,
+                              },
+                            },
+                          })
+                        }
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        className="w-full px-2 py-1 border"
+                        value={formData.professional[qualification].passingYear}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            professional: {
+                              ...formData.professional,
+                              [qualification]: {
+                                ...formData.professional[qualification],
+                                passingYear: e.target.value,
+                              },
+                            },
+                          })
+                        }
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="file"
+                        onChange={(e) =>
+                          handleFileChange(e, "professional", qualification)
+                        }
+                        className="border border-gray-300 rounded-lg p-2"
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {/* Other Membership Field */}
+          <div className="col-span-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Other Physiotherapy Organization Membership
+            </label>
+            <input
+              type="text"
+              id="otherMembership"
+              value={formData.otherMembership}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Please specify with membership number"
+            />
+          </div>
+
+          {/* Additional Particulars */}
+          <div className="col-span-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Any other relevant particulars
+            </label>
+            <textarea
+              id="additionalParticulars"
+              value={formData.additionalParticulars}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          {/* Payment Details */}
+          <div className="col-span-2">
+            <h3 className="text-lg font-bold mt-4">Payment Details</h3>
+            <label className="block text-sm font-medium text-gray-700">
+              Amount (Taka/USD)
+            </label>
+            <input
+              type="text"
+              id="amount"
+              value={formData.payment.amount}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  payment: { ...formData.payment, amount: e.target.value },
+                })
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+
+            <label className="block text-sm font-medium text-gray-700 mt-4">
+              Method
+            </label>
+            <input
+              type="text"
+              id="method"
+              value={formData.payment.method}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  payment: { ...formData.payment, method: e.target.value },
+                })
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+
+            <label className="block text-sm font-medium text-gray-700 mt-4">
+              D.D No / Cash Receipt
+            </label>
+            <input
+              type="text"
+              id="ddNo"
+              value={formData.payment.ddNo}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  payment: { ...formData.payment, ddNo: e.target.value },
+                })
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+
+            <label className="block text-sm font-medium text-gray-700 mt-4">
+              Date
+            </label>
+            <input
+              type="date"
+              id="date"
+              value={formData.payment.date}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  payment: { ...formData.payment, date: e.target.value },
+                })
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+
+            <label className="block text-sm font-medium text-gray-700 mt-4">
+              Bank
+            </label>
+            <input
+              type="text"
+              id="bank"
+              value={formData.payment.bank}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  payment: { ...formData.payment, bank: e.target.value },
+                })
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          {/* Declaration */}
+          <div className="col-span-2">
+            <label className="inline-flex items-center mt-3">
+              <input
+                type="checkbox"
+                id="agreeToTerms"
+                checked={formData.agreeToTerms}
+                onChange={(e) =>
+                  setFormData({ ...formData, agreeToTerms: e.target.checked })
+                }
+                className="form-checkbox h-5 w-5 text-blue-600"
+              />
+              <span className="ml-2 text-gray-700">
+                I declare the above information is true, and I agree to the
+                Constitution & laws of the Association.
+              </span>
+            </label>
+          </div>
+
+          {/* Signature Upload */}
+          <div className="col-span-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Signature of the Applicant
+            </label>
+            <input
+              type="file"
+              id="signatureFile"
+              onChange={(e) =>
+                setFormData({ ...formData, signatureFile: e.target.files[0] })
+              }
+              className="border border-gray-300 rounded-lg p-2 w-full"
+            />
+          </div>
+          {/* Sign up button */}
+          <button
+            type="submit"
+            className="md:col-span-2 w-full mt-6 bg-gradient-to-r from-blue-500 to-teal-400 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:opacity-90 transition-opacity"
+          >
+            Sign Up
+          </button>
+        </form>
+      </div>
     </div>
   );
 };

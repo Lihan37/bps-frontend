@@ -1,76 +1,103 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import placeholderImage from "../assets/image 6.png";
+import UseAxiosSecure from "../Hooks/UseAxiosSecure";
+import UseAxiosPublic from "../Hooks/UseAxiosPublic";
 
 const Members = () => {
+  const [members, setMembers] = useState([]);
+  const [activeTab, setActiveTab] = useState("Life");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const axiosPublic = UseAxiosPublic(); 
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    
+    const fetchMembers = async () => {
+      setLoading(true); // Set loading to true when fetching data
+      setError(null); // Reset error state
+      try {
+        const response = await axiosPublic.get("/members");
+        setMembers(response.data);
+      } catch (err) {
+        console.error("Error fetching members:", err);
+        setError("Failed to fetch members. Please try again.");
+      } finally {
+        setLoading(false); // Set loading to false after fetching data
+      }
+    };
+
+    fetchMembers();
+  }, [axiosPublic]);
+
+  // Filter members based on the active tab
+  const filteredMembers = members.filter(
+    (member) => member.membership === activeTab
+  );
+
+  // Handle tab change
+  const handleTabClick = (tab) => {
+    setActiveTab(tab);
+  };
+
   return (
     <div
       className="bg-white mt-10 p-10 rounded-lg shadow-xl"
       style={{ boxShadow: "0px 15px 25px rgba(101, 239, 231, 0.43)" }}
     >
+      {/* Tabs */}
       <div className="flex flex-wrap justify-center mb-4">
-        <div className="flex justify-center w-full sm:w-auto">
-          <button className="bg-[#C5F3F0] text-gray-700 font-bold py-2 px-4 rounded-full mx-2 mb-2 sm:mb-0">
-            Life Member
+        {["Life", "General", "EC", ].map((tab) => (
+          <button
+            key={tab}
+            className={`bg-[#C5F3F0] text-gray-700 font-bold py-2 px-4 rounded-full mx-2 mb-2 sm:mb-0 ${
+              activeTab === tab ? "border-2 border-[#000000]" : ""
+            }`}
+            onClick={() => handleTabClick(tab)}
+          >
+            {tab} Member
           </button>
-        </div>
-        <div className="flex justify-center w-full sm:w-auto">
-          <button className="bg-[#C5F3F0] text-gray-700 font-bold py-2 px-4 rounded-full mx-2 mb-2 sm:mb-0 border-2 border-[#000000]">
-            General Member
-          </button>
-        </div>
-        <div className="flex justify-center w-full sm:w-auto">
-          <button className="bg-[#C5F3F0] text-gray-700 font-bold py-2 px-4 rounded-full mx-2 mb-2 sm:mb-0">
-            EC Member
-          </button>
-        </div>
-        <div className="flex justify-center w-full sm:w-auto">
-          <button className="bg-[#C5F3F0] text-gray-700 font-bold py-2 px-4 rounded-full mx-2 mb-2 sm:mb-0">
-            SC Member
-          </button>
-        </div>
+        ))}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-[#0D8FBC] p-6 rounded-lg text-white flex flex-col items-center">
-          <img
-            src={placeholderImage}
-            alt="President"
-            className="rounded-full mb-4 w-32 h-32 object-cover"
-          />
-          <h3 className="text-lg font-bold">President</h3>
-          <p className="text-sm">Prof. Dr. Monaim Hossen</p>
+      {/* Loading and Error States */}
+      {loading ? (
+        <p className="text-center text-gray-500">Loading members...</p>
+      ) : error ? (
+        <p className="text-center text-red-500">{error}</p>
+      ) : (
+        // Member Cards
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {filteredMembers.slice(0, 4).map((member) => (
+            <div
+              key={member._id}
+              className="bg-[#0D8FBC] p-6 rounded-lg text-white flex flex-col items-center"
+            >
+              <img
+                src={member.imageUrl || placeholderImage}
+                alt={member.fullName}
+                className="rounded-full mb-4 w-32 h-32 object-cover"
+              />
+              <h3 className="text-lg font-bold">{member.fullName}</h3>
+              <p className="text-sm">Nationality: {member.nationality}</p>
+              <p className="text-sm">National ID: {member.nationalId}</p>
+            </div>
+          ))}
         </div>
-        <div className="bg-[#15D4BC] p-6 rounded-lg text-white flex flex-col items-center">
-          <img
-            src={placeholderImage}
-            alt="Secretary"
-            className="rounded-full mb-4 w-32 h-32 object-cover"
-          />
-          <h3 className="text-lg font-bold">Secretary</h3>
-          <p className="text-sm">Prof. Dr. Md. Jahangir Alam</p>
+      )}
+
+      {/* View More Button */}
+      {!loading && !error && (
+        <div className="flex justify-end mt-4">
+          <button
+            className="text-gray-700 font-bold"
+            onClick={() => navigate("/members")}
+          >
+            View more...
+          </button>
         </div>
-        <div className="bg-[#0D8FBC] p-6 rounded-lg text-white flex flex-col items-center">
-          <img
-            src={placeholderImage}
-            alt="President"
-            className="rounded-full mb-4 w-32 h-32 object-cover"
-          />
-          <h3 className="text-lg font-bold">President</h3>
-          <p className="text-sm">Prof. Dr. Monaim Hossen</p>
-        </div>
-        <div className="bg-[#15D4BC] p-6 rounded-lg text-white flex flex-col items-center">
-          <img
-            src={placeholderImage}
-            alt="Secretary"
-            className="rounded-full mb-4 w-32 h-32 object-cover"
-          />
-          <h3 className="text-lg font-bold">Secretary</h3>
-          <p className="text-sm">Prof. Dr. Md. Jahangir Alam</p>
-        </div>
-      </div>
-      <div className="flex justify-end mt-4">
-        <button className="text-gray-700 font-bold">View more...</button>
-      </div>
+      )}
     </div>
   );
 };

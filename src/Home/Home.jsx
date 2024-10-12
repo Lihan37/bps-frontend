@@ -6,7 +6,7 @@ import Notice from "../Notice/Notice";
 import Honorable from "../Honor/Honorable";
 import Banner2 from "../Banner/Banner2";
 import Members from "../Members/Members";
-import RecentActivities from "../RecentActivities/RecentsActivities";
+import LogoDetails from "../Contact/LogoDetails";
 
 const Home = () => {
   return (
@@ -31,7 +31,7 @@ const Home = () => {
         <Members></Members>
       </div>
       <div>
-        <RecentActivities></RecentActivities>
+        <LogoDetails></LogoDetails>
       </div>
     </div>
   );

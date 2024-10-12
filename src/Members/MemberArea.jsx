@@ -71,12 +71,12 @@ const MemberArea = () => {
 
   return (
     <div className="p-6 max-w-screen-2xl mx-auto">
-      <h2 className="bg-[#0A6F8F] p-8 text-center font-bold mb-10 text-5xl text-white max-w-screen-2xl mx-auto rounded-md">
+      <h2 className="bg-gradient-to-r from-cyan-500 to-blue-500 p-8 text-center font-bold text-4xl sm:text-5xl mb-10 text-white max-w-screen-2xl mx-auto rounded-md shadow-lg">
         Members
       </h2>
       {/* Tabs Navigation */}
       <div className="flex justify-center mb-6">
-        {["General", "Life", "EC", "SC"].map((tab) => (
+        {["General", "Life", "EC", ].map((tab) => (
           <button
             key={tab}
             onClick={() => handleTabClick(tab)}

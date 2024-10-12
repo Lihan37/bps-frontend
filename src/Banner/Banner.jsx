@@ -1,5 +1,6 @@
 import React from "react";
 import bone from "../assets/bone.png";
+import { Link } from "react-router-dom";
 
 const Banner = () => {
   return (
@@ -29,33 +30,23 @@ const Banner = () => {
       </h2>
       <p style={{ color: "#020A47", opacity: 0.7 }}>
         <span className="mb-3">
-          Bangladesh Orthopaedic Society (BOS) is an Association of Orthopaedic
-          and Trauma surgeons in Bangladesh. 950 Orthopaedic surgeons are now
-          active members of Bangladesh Orthopaedic Society.
-        </span>
-        <br />
-        <br />
-        <span className="mt-5">
-          Orthopaedic Surgery in Bangladesh has a great historic beginning after
-          the liberation war in 1971. Under direct supervision of the Father of
-          the Nation Bangabandhu Sheikh Mujibur Rahman, Dr. Ronald Joseph Garst,
-          a missionary orthopaedic surgeon from USA had come forward to give
-          treatment to the war injured freedom fighters. Understanding necessity
-          of orthopaedics & trauma surgery in Bangladesh the government with the
-          help R. J. Garst and other renowned orthopaedic surgeons from
-          different countries of the world established RIHD which is now known
-          as the National Institute of Orthopaedics & Traumatology
-          Rehabilitation (NITOR), centre of excellence of orthopaedic & trauma,
-          from where we started the journey of orthopaedic surgery in
-          Bangladesh.
+          Bangladesh Physiotherapy Society( BPS) is the government registered
+          national professional Organization of Physiotherapy Since 1972. It is
+          registered from the Office of the Registrar of Joint Stock Companies &
+          Firms under the Ministry of Commerce. Govt. Joint Stock Registration
+          Number is 3890/3/141 of 1972-73.Prof. Dr. Abul Hossain, the father of
+          Physiotherapy of Bangladesh was the honourable member and pioneer of
+          this national professional organisation.
         </span>
       </p>
-      <button
-        className="bg-gradient-to-r from-[#64EF8B] to-[#30EDE2] text-white mt-5 font-bold py-2 px-4 rounded-full"
-        style={{ boxShadow: "0 10px 20px rgba(92, 232, 223, 1)" }}
-      >
-        Learn more
-      </button>
+      <Link to="/mission">
+        <button
+          className="bg-gradient-to-r from-[#64EF8B] to-[#30EDE2] text-white mt-5 font-bold py-2 px-4 rounded-full"
+          style={{ boxShadow: "0 10px 20px rgba(92, 232, 223, 1)" }}
+        >
+          Learn more
+        </button>
+      </Link>
     </div>
   );
 };
