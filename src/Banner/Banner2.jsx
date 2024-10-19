@@ -1,5 +1,6 @@
 import React from "react";
 import placeholderImage from "../assets/image 11.png";
+import { Link } from "react-router-dom";
 
 const Banner2 = () => {
   return (
@@ -8,9 +9,11 @@ const Banner2 = () => {
         <h2 className="text-4xl md:text-5xl lg:text-7xl font-bold mb-4">
           Way to grow as a community
         </h2>
-        <button className="bg-gradient-to-r from-[#64EF8B] to-[#30EDE2] text-[#003546] font-bold py-2 px-4 rounded-full">
-          See ways to get started
-        </button>
+        <Link to="/signUp">
+          <button className="bg-gradient-to-r from-[#64EF8B] to-[#30EDE2] text-[#003546] font-bold py-2 px-4 rounded-full">
+            See ways to get started
+          </button>
+        </Link>
       </div>
 
       <div className="w-full md:w-1/2 text-white text-center md:text-right">

@@ -25,25 +25,32 @@ const Notice = () => {
       <h2 className="text-2xl font-bold mb-4 text-center text-[#0A6F8F]">
         Notices
       </h2>
-      <ul className="list-none pl-0 text-gray-700 space-y-4">
-        {notices.map((notice) => (
-          <li
-            key={notice._id}
-            className="flex items-center p-3 bg-gray-100 rounded-md hover:bg-gray-200 transition duration-200"
-          >
-            <FaFilePdf className="text-red-500 text-xl mr-3" />
-            <a
-              href={`http://localhost:5000/${notice.filePath}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline text-blue-600 hover:text-blue-800 font-semibold flex-1"
-              download
+      {notices.length > 0 ? (
+        <ul
+          className="list-none pl-0 text-gray-700 space-y-4"
+          style={{ scrollbarWidth: "thin", scrollbarColor: "#c4c4c4 transparent" }}
+        >
+          {notices.map((notice) => (
+            <li
+              key={notice._id}
+              className="flex items-center p-3 bg-gray-100 rounded-md hover:bg-gray-200 transition duration-200"
             >
-              {notice.title}
-            </a>
-          </li>
-        ))}
-      </ul>
+              <FaFilePdf className="text-red-500 text-xl mr-3" />
+              <a
+                href={`http://localhost:5000/${notice.filePath}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline text-blue-600 hover:text-blue-800 font-semibold flex-1"
+                download
+              >
+                {notice.title}
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-center text-gray-500">No notices available at the moment.</p>
+      )}
     </div>
   );
 };

@@ -20,34 +20,34 @@ const SignUp = () => {
     email: "",
     membership: "General",
     password: "",
-    imageUrls: [],
+    imageUrls: [], // For passport photo
     education: {
       ssc: {
         passingYear: "",
         board: "",
         registrationNo: "",
         school: "",
-        file: null,
+        file: null, // For SSC certificate image
       },
       hsc: {
         passingYear: "",
         board: "",
         registrationNo: "",
         school: "",
-        file: null,
+        file: null, // For HSC certificate image
       },
       diploma: {
         passingYear: "",
         board: "",
         registrationNo: "",
         school: "",
-        file: null,
+        file: null, // For Diploma certificate image
       },
     },
     professional: {
-      bpt: { university: "", institute: "", passingYear: "", file: null },
-      mpt: { university: "", institute: "", passingYear: "", file: null },
-      others: { university: "", institute: "", passingYear: "", file: null },
+      bpt: { university: "", institute: "", passingYear: "", file: null }, // For BPT certificate image
+      mpt: { university: "", institute: "", passingYear: "", file: null }, // For MPT certificate image
+      others: { university: "", institute: "", passingYear: "", file: null }, // For other certificates
     },
     otherMembership: "",
     additionalParticulars: "",
@@ -59,13 +59,14 @@ const SignUp = () => {
       bank: "",
     },
     agreeToTerms: false,
-    signatureFile: null, // For signature of applicant
+    signatureFile: "", // Initialize with an empty string for signature file
   });
 
   const [passwordError, setPasswordError] = useState("");
   const { createUser } = useContext(AuthContext);
   const navigate = useNavigate();
 
+  // Validation for password (unchanged)
   const validatePassword = (password) => {
     const minLength = 8;
     const hasUpperCase = /[A-Z]/.test(password);
@@ -92,56 +93,88 @@ const SignUp = () => {
     return "";
   };
 
+  // Handle input changes correctly for each field without affecting other fields
   const handleInputChange = (e) => {
     const { id, value } = e.target;
-    setFormData({ ...formData, [id]: value });
+    setFormData((prevData) => ({
+      ...prevData,
+      [id]: value,
+    }));
   };
 
-  const handleFileChange = (e, section, field) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFormData({
-        ...formData,
-        [section]: {
-          ...formData[section],
-          [field]: { ...formData[section][field], file },
+  const handleTableInputChange = (e, section, field, qualification) => {
+    const { value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [section]: {
+        ...prevData[section],
+        [qualification]: {
+          ...prevData[section][qualification],
+          [field]: value,
         },
+      },
+    }));
+  };
+
+  const handleImageUpload = async (e, section, field, sizeLimitMB = 2) => {
+    const file = e.target.files[0];
+    const sizeLimitBytes = sizeLimitMB * 1024 * 1024; // Convert size limit to bytes
+
+    if (file && file.size > sizeLimitBytes) {
+      Swal.fire({
+        title: "Error!",
+        text: `File size exceeds the ${sizeLimitMB}MB limit.`,
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+      return;
+    }
+
+    const uploadFormData = new FormData();
+    uploadFormData.append("image", file);
+
+    try {
+      const response = await axios.post(
+        `https://api.imgbb.com/1/upload?key=${
+          import.meta.env.VITE_IMGBB_API_KEY
+        }`,
+        uploadFormData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+
+      if (response.data.success) {
+        const imageUrl = response.data.data.display_url;
+
+        // Handle the case where signatureFile needs to be updated
+        if (section === "signatureFile") {
+          setFormData((prevData) => ({
+            ...prevData,
+            signatureFile: imageUrl || "", // Safely update signatureFile
+          }));
+        } else {
+          // Update form data for the correct section and field
+          setFormData((prevData) => ({
+            ...prevData,
+            [section]: {
+              ...prevData[section],
+              [field]: {
+                ...prevData[section][field],
+                file: imageUrl || null, // Safely update image URL or set to null
+              },
+            },
+          }));
+        }
+      } else {
+        throw new Error("Failed to upload image.");
+      }
+    } catch (error) {
+      Swal.fire({
+        title: "Error!",
+        text: "Failed to upload image.",
+        icon: "error",
+        confirmButtonText: "OK",
       });
     }
-  };
-
-  const handleImageUpload = async (e) => {
-    const files = Array.from(e.target.files);
-    const imageUrls = [];
-
-    for (let file of files) {
-      const uploadFormData = new FormData();
-      uploadFormData.append("image", file);
-
-      try {
-        const response = await axios.post(
-          `https://api.imgbb.com/1/upload?key=${
-            import.meta.env.VITE_IMGBB_API_KEY
-          }`,
-          uploadFormData,
-          { headers: { "Content-Type": "multipart/form-data" } }
-        );
-        if (response.data.success) {
-          imageUrls.push(response.data.data.display_url);
-        } else {
-          throw new Error("Failed to upload image");
-        }
-      } catch (error) {
-        Swal.fire({
-          title: "Error!",
-          text: "Failed to upload image.",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-      }
-    }
-
-    setFormData((prevData) => ({ ...prevData, imageUrls }));
   };
 
   const handleSubmit = async (e) => {
@@ -155,103 +188,37 @@ const SignUp = () => {
     }
 
     try {
-      if (!formData.email || !formData.password) {
-        throw new Error("Email and password must be provided.");
-      }
-
-      // Function to upload files (PDFs)
-      const uploadFiles = async (file) => {
-        const uploadFormData = new FormData();
-        uploadFormData.append("file", file);
-
-        const response = await axios.post(
-          "http://localhost:5000/upload-pdf", // Adjust this URL if needed
-          uploadFormData,
-          {
-            headers: { "Content-Type": "multipart/form-data" },
-          }
-        );
-
-        return response.data.filePath; // The file path on the server
-      };
-
-      // Upload PDFs for education fields
-      for (const key of ["ssc", "hsc", "diploma"]) {
-        if (formData.education[key].file) {
-          const filePath = await uploadFiles(formData.education[key].file);
-          formData.education[key].file = filePath; // Update with the file path
-        }
-      }
-
-      // Upload PDFs for professional fields
-      for (const key of ["bpt", "mpt", "others"]) {
-        if (formData.professional[key].file) {
-          const filePath = await uploadFiles(formData.professional[key].file);
-          formData.professional[key].file = filePath; // Update with the file path
-        }
-      }
-
-      // Upload signature if available
-      if (formData.signatureFile) {
-        const signaturePath = await uploadFiles(formData.signatureFile);
-        formData.signatureFile = signaturePath;
-      }
-
-      // Image upload if there are any images
-      if (formData.imageUrls.length > 0) {
-        const uploadImages = async () => {
-          const imageUrls = [];
-          for (let image of formData.imageUrls) {
-            const uploadFormData = new FormData();
-            uploadFormData.append("image", image);
-
-            const response = await axios.post(
-              `https://api.imgbb.com/1/upload?key=${
-                import.meta.env.VITE_IMGBB_API_KEY
-              }`,
-              uploadFormData,
-              {
-                headers: { "Content-Type": "multipart/form-data" },
-              }
-            );
-
-            if (response.data.success) {
-              imageUrls.push(response.data.data.display_url);
-            } else {
-              throw new Error("Failed to upload images.");
-            }
-          }
-          return imageUrls;
-        };
-
-        formData.imageUrls = await uploadImages();
-      }
-
-      // Create user and save form data to the database
+      // Create user with Firebase (or any auth system)
       const userCredential = await createUser(
         formData.email,
         formData.password
       );
       formData.userId = userCredential.user.uid;
 
-      // Post form data to the backend
+      // Log form data to verify before sending to backend
+      console.log("Submitting form data:", formData);
+
+      // Save form data to backend
       const response = await axios.post(
         "http://localhost:5000/members",
         formData
       );
 
-      // Show success message and navigate
-      Swal.fire({
-        title: "Success!",
-        text: "Account created successfully.",
-        icon: "success",
-        confirmButtonText: "OK",
-      }).then(() => {
-        navigate("/"); // Navigate to home or any other page after success
-      });
+      if (response.status === 201) {
+        Swal.fire({
+          title: "Success!",
+          text: "Account created successfully.",
+          icon: "success",
+          confirmButtonText: "OK",
+        }).then(() => {
+          navigate("/"); // Redirect after success
+        });
+      } else {
+        throw new Error("Unexpected response status.");
+      }
     } catch (error) {
-      // Error handling for form submission
-      console.error("Error during form submission:", error); // Logging error
+      console.error("Error submitting form:", error);
+
       Swal.fire({
         title: "Error!",
         text: error.message || "Failed to submit the form. Please try again.",
@@ -287,10 +254,9 @@ const SignUp = () => {
             </label>
             <input
               type="file"
-              id="imageUpload"
-              onChange={handleImageUpload}
-              multiple
+              onChange={(e) => handleImageUpload(e, "imageUrls", "image", 2)} // 2MB limit for passport photo
               className="border border-gray-300 rounded-lg p-2 w-full"
+              accept="image/*"
             />
             {formData.imageUrls.length > 0 && (
               <div className="mt-4 flex space-x-4">
@@ -451,6 +417,7 @@ const SignUp = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
+
           {/* Membership Type Selection */}
           <div>
             <label
@@ -470,10 +437,8 @@ const SignUp = () => {
             >
               <option value="General">General Member</option>
               <option value="Life">Life Member</option>
-              
             </select>
           </div>
-
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">
               E-mail
@@ -504,7 +469,7 @@ const SignUp = () => {
             )}
           </div>
 
-          {/* Education and Professional Qualification Tables */}
+          {/* Educational Qualifications */}
           <div className="col-span-2">
             <h3 className="text-lg font-bold mt-4">
               Educational Qualifications
@@ -515,31 +480,29 @@ const SignUp = () => {
                   <th>Degree/Diploma</th>
                   <th>Passing Year</th>
                   <th>Name of Board/Faculty</th>
-                  <th>Registration no</th>
-                  <th>Name of school/College/institute</th>
+                  <th>Registration No.</th>
+                  <th>Name of School/Institute</th>
                   <th>Attach File</th>
                 </tr>
               </thead>
               <tbody>
-                {Object.keys(formData.education).map((qualification) => (
+                {["ssc", "hsc", "diploma"].map((qualification) => (
                   <tr key={qualification}>
                     <td>{qualification.toUpperCase()}</td>
                     <td>
                       <input
                         type="text"
                         className="w-full px-2 py-1 border"
-                        value={formData.education[qualification].passingYear}
+                        value={
+                          formData.education[qualification].passingYear || ""
+                        }
                         onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            education: {
-                              ...formData.education,
-                              [qualification]: {
-                                ...formData.education[qualification],
-                                passingYear: e.target.value,
-                              },
-                            },
-                          })
+                          handleTableInputChange(
+                            e,
+                            "education",
+                            "passingYear",
+                            qualification
+                          )
                         }
                       />
                     </td>
@@ -547,18 +510,14 @@ const SignUp = () => {
                       <input
                         type="text"
                         className="w-full px-2 py-1 border"
-                        value={formData.education[qualification].board}
+                        value={formData.education[qualification].board || ""}
                         onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            education: {
-                              ...formData.education,
-                              [qualification]: {
-                                ...formData.education[qualification],
-                                board: e.target.value,
-                              },
-                            },
-                          })
+                          handleTableInputChange(
+                            e,
+                            "education",
+                            "board",
+                            qualification
+                          )
                         }
                       />
                     </td>
@@ -566,18 +525,16 @@ const SignUp = () => {
                       <input
                         type="text"
                         className="w-full px-2 py-1 border"
-                        value={formData.education[qualification].registrationNo}
+                        value={
+                          formData.education[qualification].registrationNo || ""
+                        }
                         onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            education: {
-                              ...formData.education,
-                              [qualification]: {
-                                ...formData.education[qualification],
-                                registrationNo: e.target.value,
-                              },
-                            },
-                          })
+                          handleTableInputChange(
+                            e,
+                            "education",
+                            "registrationNo",
+                            qualification
+                          )
                         }
                       />
                     </td>
@@ -585,18 +542,14 @@ const SignUp = () => {
                       <input
                         type="text"
                         className="w-full px-2 py-1 border"
-                        value={formData.education[qualification].school}
+                        value={formData.education[qualification].school || ""}
                         onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            education: {
-                              ...formData.education,
-                              [qualification]: {
-                                ...formData.education[qualification],
-                                school: e.target.value,
-                              },
-                            },
-                          })
+                          handleTableInputChange(
+                            e,
+                            "education",
+                            "school",
+                            qualification
+                          )
                         }
                       />
                     </td>
@@ -604,16 +557,31 @@ const SignUp = () => {
                       <input
                         type="file"
                         onChange={(e) =>
-                          handleFileChange(e, "education", qualification)
-                        }
+                          handleImageUpload(e, "education", qualification, 5)
+                        } // Adjust size limit to 5MB
                         className="border border-gray-300 rounded-lg p-2"
+                        accept="image/*"
                       />
+                      {/* Image Preview */}
+                      {formData.education[qualification].file && (
+                        <div className="mt-4">
+                          <img
+                            src={formData.education[qualification].file}
+                            alt={`Certificate Preview ${qualification}`}
+                            className="w-full max-w-md h-auto object-cover rounded-lg shadow-md" // Adjust size for clearer view
+                            style={{ width: "400px", height: "auto" }} // Larger width for bigger preview
+                          />
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
 
+          {/* Professional Qualifications */}
+          <div className="col-span-2">
             <h3 className="text-lg font-bold mt-4">
               Professional Qualifications
             </h3>
@@ -621,32 +589,30 @@ const SignUp = () => {
               <thead>
                 <tr>
                   <th>Degree/Exam</th>
-                  <th>Name of university</th>
-                  <th>Name of institute</th>
-                  <th>Year of passing</th>
+                  <th>Name of University</th>
+                  <th>Name of Institute</th>
+                  <th>Year of Passing</th>
                   <th>Attach File</th>
                 </tr>
               </thead>
               <tbody>
-                {Object.keys(formData.professional).map((qualification) => (
+                {["bpt", "mpt", "others"].map((qualification) => (
                   <tr key={qualification}>
                     <td>{qualification.toUpperCase()}</td>
                     <td>
                       <input
                         type="text"
                         className="w-full px-2 py-1 border"
-                        value={formData.professional[qualification].university}
+                        value={
+                          formData.professional[qualification].university || ""
+                        }
                         onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            professional: {
-                              ...formData.professional,
-                              [qualification]: {
-                                ...formData.professional[qualification],
-                                university: e.target.value,
-                              },
-                            },
-                          })
+                          handleTableInputChange(
+                            e,
+                            "professional",
+                            "university",
+                            qualification
+                          )
                         }
                       />
                     </td>
@@ -654,18 +620,16 @@ const SignUp = () => {
                       <input
                         type="text"
                         className="w-full px-2 py-1 border"
-                        value={formData.professional[qualification].institute}
+                        value={
+                          formData.professional[qualification].institute || ""
+                        }
                         onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            professional: {
-                              ...formData.professional,
-                              [qualification]: {
-                                ...formData.professional[qualification],
-                                institute: e.target.value,
-                              },
-                            },
-                          })
+                          handleTableInputChange(
+                            e,
+                            "professional",
+                            "institute",
+                            qualification
+                          )
                         }
                       />
                     </td>
@@ -673,18 +637,16 @@ const SignUp = () => {
                       <input
                         type="text"
                         className="w-full px-2 py-1 border"
-                        value={formData.professional[qualification].passingYear}
+                        value={
+                          formData.professional[qualification].passingYear || ""
+                        }
                         onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            professional: {
-                              ...formData.professional,
-                              [qualification]: {
-                                ...formData.professional[qualification],
-                                passingYear: e.target.value,
-                              },
-                            },
-                          })
+                          handleTableInputChange(
+                            e,
+                            "professional",
+                            "passingYear",
+                            qualification
+                          )
                         }
                       />
                     </td>
@@ -692,16 +654,29 @@ const SignUp = () => {
                       <input
                         type="file"
                         onChange={(e) =>
-                          handleFileChange(e, "professional", qualification)
-                        }
+                          handleImageUpload(e, "professional", qualification, 5)
+                        } // Adjust size limit to 5MB
                         className="border border-gray-300 rounded-lg p-2"
+                        accept="image/*"
                       />
+                      {/* Image Preview */}
+                      {formData.professional[qualification].file && (
+                        <div className="mt-4">
+                          <img
+                            src={formData.professional[qualification].file}
+                            alt={`Professional Certificate Preview ${qualification}`}
+                            className="w-full max-w-md h-auto object-cover rounded-lg shadow-md" // Adjust size for clearer view
+                            style={{ width: "400px", height: "auto" }} // Larger width for bigger preview
+                          />
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+
           {/* Other Membership Field */}
           <div className="col-span-2">
             <label className="block text-sm font-medium text-gray-700">
@@ -766,7 +741,7 @@ const SignUp = () => {
             />
 
             <label className="block text-sm font-medium text-gray-700 mt-4">
-              D.D No / Cash Receipt
+              D.D No / Transaction ID
             </label>
             <input
               type="text"
@@ -842,11 +817,12 @@ const SignUp = () => {
               type="file"
               id="signatureFile"
               onChange={(e) =>
-                setFormData({ ...formData, signatureFile: e.target.files[0] })
-              }
+                handleImageUpload(e, "signatureFile", "signatureFile", 1)
+              } // 1MB limit for signature
               className="border border-gray-300 rounded-lg p-2 w-full"
             />
           </div>
+
           {/* Sign up button */}
           <button
             type="submit"

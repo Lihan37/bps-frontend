@@ -5,6 +5,8 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut,
+  sendEmailVerification,
+  sendPasswordResetEmail,
 } from "firebase/auth";
 import { app } from "../Firebase/firebase.config";
 import UseAxiosPublic from "../Hooks/UseAxiosPublic";
@@ -17,16 +19,43 @@ const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const axiosPublic = UseAxiosPublic();
 
-  const createUser = (email, password) => {
+  // Create a new user and send email verification
+  const createUser = async (email, password) => {
     setLoading(true);
-    return createUserWithEmailAndPassword(auth, email, password);
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    // Send email verification
+    if (user) {
+      await sendEmailVerification(user);
+      setLoading(false);
+      return userCredential;
+    }
   };
 
-  const signIn = (email, password) => {
+  // Sign in method with email verification check
+  const signIn = async (email, password) => {
     setLoading(true);
-    return signInWithEmailAndPassword(auth, email, password);
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    // Check if the email is verified
+    if (user.emailVerified) {
+      setLoading(false);
+      return userCredential;
+    } else {
+      setLoading(false);
+      await signOut(auth); // Log out if not verified
+      throw new Error("Please verify your email before signing in.");
+    }
   };
 
+  // Forgot password functionality
+  const resetPassword = (email) => {
+    return sendPasswordResetEmail(auth, email);
+  };
+
+  // Sign out function
   const logOut = () => {
     setLoading(true);
     return signOut(auth);
@@ -60,6 +89,7 @@ const AuthProvider = ({ children }) => {
     createUser,
     signIn,
     logOut,
+    resetPassword,  // Include reset password method
   };
 
   return (

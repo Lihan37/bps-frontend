@@ -1,5 +1,6 @@
 import React from "react";
 import logo from "../assets/bpa-logo.jpg"; // Update with the correct path to the logo image
+import samplePdf from "../assets/Name and Pic.pdf"; // Update with the correct path to your PDF file
 
 const LogoDetails = () => {
   return (
@@ -8,7 +9,7 @@ const LogoDetails = () => {
       <div className="flex flex-col md:flex-row justify-between items-center mb-12">
         <div className="md:w-1/2 text-center mb-6 md:mb-0">
           {/* Adding the new lines of text above the logo */}
-          <h3 className="text-lg italic mb-1">Sister Organization</h3>
+          <h3 className="text-lg italic font-bold mb-1">Sister Organization</h3>
           <h4 className="text-md italic text-gray-600 mb-3">
             National Professional Trade Body
           </h4>
@@ -22,14 +23,26 @@ const LogoDetails = () => {
 
         <div className="md:w-1/2 text-center md:text-left">
           <h3 className="text-3xl font-bold mb-6 text-blue-600">
-            BANGLADESH PHYSICAL THERAPY ASSOCIATION
+            BANGLADESH PHYSICAL THERAPY ASSOCIATION-BPA
           </h3>
           <p className="text-gray-600 italic leading-relaxed text-lg">
             Bangladesh Physical Therapy Association is the only Government
-            Approved Professional, Educational & Trade Body for the
-            Physiotherapy profession. Govt. Joint Stock Reg. No.: TO-839
+            Approved Professional Trade Body for the Physiotherapy profession.
+            Govt. Joint Stock Reg. No.: TO-839
           </p>
         </div>
+      </div>
+
+      {/* PDF Download Section (Moved below the BPA paragraph) */}
+      <div className="mt-10 mb-5 text-center">
+       
+        <a
+          href={samplePdf}
+          download
+          className="inline-block bg-gradient-to-r from-[#65EFE7] to-[#30EDE2] text-white font-bold py-3 px-6 rounded-full shadow-lg hover:opacity-90 transition duration-300"
+        >
+          Download PDF
+        </a>
       </div>
 
       {/* YouTube Channel Link */}

@@ -4,6 +4,8 @@ import Swal from "sweetalert2";
 import axios from "axios";
 import { AuthContext } from "../Providers/AuthProvider";
 import UseAxiosSecure from "../Hooks/UseAxiosSecure";
+import { sendPasswordResetEmail } from "firebase/auth";
+import { getAuth } from "firebase/auth"; // Firebase auth
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -12,7 +14,7 @@ const Login = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userInfo, setUserInfo] = useState({ name: "", imageUrl: "" });
   const navigate = useNavigate();
-
+  const auth = getAuth(); // Firebase auth instance
   const axiosSecure = UseAxiosSecure();
 
   useEffect(() => {
@@ -29,18 +31,14 @@ const Login = () => {
       const response = await axiosSecure.get(`/members/user/${userId}`);
       const memberData = response.data;
 
-      // Check if imageUrls is an array and has at least one item
       const imageUrl =
-        Array.isArray(memberData.imageUrls) && memberData.imageUrls.length > 0
-          ? memberData.imageUrls[0]
-          : ""; // Fallback to an empty string if no images available
+        memberData?.imageUrls?.image?.file || ""; // Fetch the main image URL
 
       setUserInfo({
-        name: memberData.fullName || "User", // Fallback to 'User' if fullName is undefined
-        imageUrl, // Use the checked imageUrl
+        name: memberData.fullName || "User",
+        imageUrl, // Store the main image URL
       });
     } catch (error) {
-      console.error("Error fetching user info:", error);
       Swal.fire({
         title: "Error!",
         text: "Failed to fetch user information.",
@@ -52,7 +50,13 @@ const Login = () => {
 
   const handleLogin = async () => {
     try {
-      await signIn(email, password);
+      const userCredential = await signIn(email, password);
+      const userInfo = { email: userCredential.user.email };
+      const tokenResponse = await axios.post(
+        "http://localhost:5000/jwt",
+        userInfo
+      );
+      localStorage.setItem("access-token", tokenResponse.data.token);
       Swal.fire({
         title: "Success!",
         text: "Logged in successfully.",
@@ -91,6 +95,36 @@ const Login = () => {
 
   const handleViewProfile = () => {
     navigate("/profile"); // Navigate to the profile page
+  };
+
+  // Forgot Password function
+  const handleForgotPassword = async () => {
+    if (!email) {
+      Swal.fire({
+        title: "Error!",
+        text: "Please enter your email address to reset your password.",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+      return;
+    }
+
+    try {
+      await sendPasswordResetEmail(auth, email);
+      Swal.fire({
+        title: "Password Reset!",
+        text: `A password reset link has been sent to ${email}. Please check your inbox.`,
+        icon: "success",
+        confirmButtonText: "OK",
+      });
+    } catch (error) {
+      Swal.fire({
+        title: "Error!",
+        text: error.message,
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    }
   };
 
   return (
@@ -148,6 +182,15 @@ const Login = () => {
                 Sign In
               </button>
             </div>
+            <div className="text-center">
+              <button
+                className="text-white underline text-sm"
+                type="button"
+                onClick={handleForgotPassword}
+              >
+                Forgot Password?
+              </button>
+            </div>
           </>
         ) : (
           <div className="flex items-center justify-center mb-4 space-x-4">
@@ -161,7 +204,7 @@ const Login = () => {
             <button
               className="bg-white text-[#006382] font-bold py-2 px-4 rounded-full focus:outline-none focus:shadow-outline"
               type="button"
-              onClick={handleViewProfile} // Call the new function
+              onClick={handleViewProfile}
             >
               View Your Profile
             </button>
