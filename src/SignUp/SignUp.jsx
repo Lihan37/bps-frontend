@@ -250,7 +250,7 @@ const SignUp = () => {
           {/* Image Upload Section */}
           <div className="flex flex-col items-center md:col-span-2">
             <label className="text-lg font-semibold mb-4">
-              Upload Passport Size Photo (2 copies)
+              Upload Passport Size Photo
             </label>
             <input
               type="file"

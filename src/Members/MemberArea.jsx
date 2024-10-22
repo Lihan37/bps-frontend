@@ -76,7 +76,7 @@ const MemberArea = () => {
       </h2>
       {/* Tabs Navigation */}
       <div className="flex justify-center mb-6">
-        {["General", "Life", "EC", ].map((tab) => (
+        {["General", "Life"].map((tab) => ( // Removed "EC" tab
           <button
             key={tab}
             onClick={() => handleTabClick(tab)}
@@ -109,13 +109,12 @@ const MemberArea = () => {
               className="bg-[#0D8FBC] p-6 rounded-lg text-white flex flex-col items-center"
             >
               <img
-                src={member.imageUrl || "https://via.placeholder.com/150"}
+                src={member.imageUrls?.image?.file || "https://via.placeholder.com/150"} // Correct image path
                 alt={member.fullName}
                 className="rounded-full mb-4 w-32 h-32 object-cover"
               />
               <h3 className="text-lg font-bold">{member.fullName}</h3>
-              <p className="text-sm">Nationality: {member.nationality}</p>
-              <p className="text-sm">National ID: {member.nationalId}</p>
+              <p className="text-sm">Email: {member.email}</p> {/* Added Email */}
             </div>
           ))
         ) : (

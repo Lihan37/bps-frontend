@@ -95,7 +95,6 @@ const NoticeBoard = () => {
 
   return (
     <div className="mt-5 px-4 sm:px-6 lg:px-8">
-      {/* Responsive padding */}
       <h2 className="bg-gradient-to-r from-blue-500 to-cyan-500 p-6 sm:p-8 text-center font-bold text-3xl sm:text-4xl lg:text-5xl text-white max-w-screen-2xl mx-auto rounded-md shadow-lg">
         Notice Board
       </h2>
@@ -103,7 +102,6 @@ const NoticeBoard = () => {
         {/* Upload Section - Show only for Admin */}
         {!isAdminLoading && isAdmin && (
           <div className="bg-gray-100 p-4 sm:p-6 rounded-lg shadow-md flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
-            {/* Responsive flex and spacing */}
             <div className="flex items-center space-x-2 sm:space-x-4">
               <FaUpload className="text-xl sm:text-2xl text-blue-500" />
               <input
@@ -128,7 +126,6 @@ const NoticeBoard = () => {
           Latest Notices
         </h3>
         <ul className="space-y-4">
-          {/* List layout with space between items */}
           {currentNotices.map((notice, index) => (
             <li
               key={index}
@@ -138,11 +135,11 @@ const NoticeBoard = () => {
               <div className="flex items-center space-x-2 sm:space-x-4">
                 <FaFilePdf className="text-red-500 text-2xl sm:text-3xl" />
                 <a
-                  href={`http://localhost:5000/${notice.filePath}`} // Use the correct file path
+                  href={`http://localhost:5000${notice.filePath}`} // Corrected file path
                   target="_blank"
                   rel="noopener noreferrer"
                   className="underline text-blue-600 hover:text-blue-800 font-semibold text-sm sm:text-base"
-                  download // Makes the link downloadable
+                  download
                 >
                   {notice.title}
                 </a>

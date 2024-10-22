@@ -182,7 +182,7 @@ const Login = () => {
                 Sign In
               </button>
             </div>
-            <div className="text-center">
+            <div className="text-left pl-3">
               <button
                 className="text-white underline text-sm"
                 type="button"

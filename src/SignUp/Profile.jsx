@@ -87,6 +87,14 @@ const Profile = () => {
               {userInfo.role === "admin" ? "Administrator" : "Member"}
             </p>
 
+            {/* Membership Information */}
+            <div className="bg-blue-100 p-4 rounded-lg shadow-sm w-full mt-4">
+              <h2 className="text-xl font-bold mb-2 text-blue-800">Membership Information</h2>
+              <p><strong>Membership ID:</strong> {userInfo?.membershipId || "Not Assigned"}</p>
+              <p><strong>Status:</strong> {userInfo?.status || "Not Assigned"}</p>
+              <p><strong>Membership Type:</strong> {userInfo?.membership}</p>
+            </div>
+
             {/* User Details */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full mt-4">
               {/* Personal Information */}

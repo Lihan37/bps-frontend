@@ -1,21 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import placeholderImage from "../assets/image 6.png";
-import UseAxiosSecure from "../Hooks/UseAxiosSecure";
-import UseAxiosPublic from "../Hooks/UseAxiosPublic";
+import placeholderImage from "../assets/image 6.png"; // Placeholder image
+import UseAxiosPublic from "../Hooks/UseAxiosPublic"; // Axios hook
 
 const Members = () => {
   const [members, setMembers] = useState([]);
-  const [activeTab, setActiveTab] = useState("Life");
+  const [activeTab, setActiveTab] = useState("Life"); // Default tab is "Life"
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const axiosPublic = UseAxiosPublic(); 
   const navigate = useNavigate();
 
   useEffect(() => {
-    
     const fetchMembers = async () => {
-      setLoading(true); // Set loading to true when fetching data
+      setLoading(true); // Start loading state
       setError(null); // Reset error state
       try {
         const response = await axiosPublic.get("/members");
@@ -24,7 +22,7 @@ const Members = () => {
         console.error("Error fetching members:", err);
         setError("Failed to fetch members. Please try again.");
       } finally {
-        setLoading(false); // Set loading to false after fetching data
+        setLoading(false); // End loading state
       }
     };
 
@@ -48,7 +46,7 @@ const Members = () => {
     >
       {/* Tabs */}
       <div className="flex flex-wrap justify-center mb-4">
-        {["Life", "General", "EC", ].map((tab) => (
+        {["Life", "General"].map((tab) => (
           <button
             key={tab}
             className={`bg-[#C5F3F0] text-gray-700 font-bold py-2 px-4 rounded-full mx-2 mb-2 sm:mb-0 ${
@@ -75,13 +73,12 @@ const Members = () => {
               className="bg-[#0D8FBC] p-6 rounded-lg text-white flex flex-col items-center"
             >
               <img
-                src={member.imageUrl || placeholderImage}
+                src={member.imageUrls?.image?.file || placeholderImage} // Fetch image from correct path
                 alt={member.fullName}
                 className="rounded-full mb-4 w-32 h-32 object-cover"
               />
               <h3 className="text-lg font-bold">{member.fullName}</h3>
-              <p className="text-sm">Nationality: {member.nationality}</p>
-              <p className="text-sm">National ID: {member.nationalId}</p>
+              <p className="text-sm">Email: {member.email}</p> {/* Display email */}
             </div>
           ))}
         </div>

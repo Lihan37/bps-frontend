@@ -120,7 +120,7 @@ const Publication = () => {
               <div className="flex items-center space-x-2 sm:space-x-4">
                 <FaFilePdf className="text-red-500 text-2xl sm:text-3xl" />
                 <a
-                  href={`http://localhost:5000/${publication.filePath}`} // Use the correct file path
+                  href={`http://localhost:5000${publication.filePath}`} // Use the correct file path
                   target="_blank"
                   rel="noopener noreferrer"
                   className="underline text-blue-600 hover:text-blue-800 font-semibold text-sm sm:text-base"
@@ -129,15 +129,20 @@ const Publication = () => {
                   {publication.title}
                 </a>
               </div>
-              {!isAdminLoading && isAdmin && (
-                <button
-                  onClick={() => deletePublication(publication._id)}
-                  className="bg-red-500 text-white px-3 py-2 rounded-md hover:bg-red-600 transition duration-200 flex items-center space-x-2"
-                >
-                  <FaTrashAlt />
-                  <span>Delete</span>
-                </button>
-              )}
+              <div className="flex flex-col items-end">
+                <span className="text-sm text-gray-500">
+                  {new Date(publication.uploadedAt).toLocaleDateString()}
+                </span>
+                {!isAdminLoading && isAdmin && (
+                  <button
+                    onClick={() => deletePublication(publication._id)}
+                    className="bg-red-500 text-white px-3 py-2 rounded-md hover:bg-red-600 transition duration-200 flex items-center space-x-2 mt-2"
+                  >
+                    <FaTrashAlt />
+                    <span>Delete</span>
+                  </button>
+                )}
+              </div>
             </li>
           ))}
         </ul>
