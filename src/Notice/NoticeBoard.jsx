@@ -1,26 +1,31 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import Swal from "sweetalert2";
-import { FaTrashAlt, FaFilePdf, FaUpload } from "react-icons/fa"; // Importing icons
+import { FaTrashAlt, FaFilePdf, FaUpload } from "react-icons/fa";
 import UseAdmin from "../Hooks/UseAdmin";
+import axios from "axios";
 
 const NoticeBoard = () => {
   const [notices, setNotices] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [noticesPerPage] = useState(5); // Set the number of notices per page
-  const [isAdmin, isAdminLoading] = UseAdmin(); // Using the admin hook to check admin status
+  const [noticesPerPage] = useState(5);
+  const [isAdmin, isAdminLoading] = UseAdmin(); // Hook for checking admin status
 
   // Fetch notices from the backend
   const fetchNotices = () => {
     axios
-      .get("http://localhost:5000/notices")
+      .get("https://bps-server.vercel.app/notices") // Ensure the correct URL
       .then((response) => {
-        // Sort notices by date in descending order
-        const sortedNotices = response.data.sort(
-          (a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt)
-        );
-        setNotices(sortedNotices);
+        console.log("Fetched notices:", response.data);
+
+        if (Array.isArray(response.data)) {
+          const sortedNotices = response.data.sort(
+            (a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt)
+          );
+          setNotices(sortedNotices);
+        } else {
+          console.error("The response data is not an array:", response.data);
+        }
       })
       .catch((error) => console.error("Error fetching notices:", error));
   };
@@ -29,7 +34,6 @@ const NoticeBoard = () => {
     fetchNotices();
   }, []);
 
-  // Handle file upload
   const handleFileUpload = (event) => {
     setSelectedFile(event.target.files[0]);
   };
@@ -41,16 +45,19 @@ const NoticeBoard = () => {
     }
 
     const formData = new FormData();
-    formData.append("pdfFile", selectedFile);
-    formData.append("title", selectedFile.name);
+    formData.append("pdf", selectedFile);
 
     axios
-      .post("http://localhost:5000/notices/upload", formData)
+      .post("https://bps-server.vercel.app/notices", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
       .then((response) => {
         Swal.fire("Success", response.data.message, "success");
-        setSelectedFile(null); // Clear selected file
-        document.querySelector('input[type="file"]').value = ""; // Clear the file input field
-        fetchNotices(); // Refresh notices list
+        setSelectedFile(null);
+        document.querySelector('input[type="file"]').value = ""; // Clear input field
+        fetchNotices(); // Refresh notice list
       })
       .catch((error) => {
         console.error("Error uploading notice:", error);
@@ -58,7 +65,6 @@ const NoticeBoard = () => {
       });
   };
 
-  // Delete notice
   const deleteNotice = (id) => {
     Swal.fire({
       title: "Are you sure?",
@@ -71,10 +77,10 @@ const NoticeBoard = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         axios
-          .delete(`http://localhost:5000/notices/${id}`)
+          .delete(`https://bps-server.vercel.app/notices/${id}`)
           .then((response) => {
             Swal.fire("Deleted!", response.data.message, "success");
-            fetchNotices(); // Refresh notices list
+            fetchNotices(); // Refresh notice list
           })
           .catch((error) => {
             console.error("Error deleting notice:", error);
@@ -90,7 +96,6 @@ const NoticeBoard = () => {
   const currentNotices = notices.slice(indexOfFirstNotice, indexOfLastNotice);
 
   const totalPages = Math.ceil(notices.length / noticesPerPage);
-
   const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
@@ -99,7 +104,6 @@ const NoticeBoard = () => {
         Notice Board
       </h2>
       <div className="bg-white shadow-lg rounded-3xl p-6 sm:p-8 mt-8 max-w-screen-2xl mx-auto space-y-8">
-        {/* Upload Section - Show only for Admin */}
         {!isAdminLoading && isAdmin && (
           <div className="bg-gray-100 p-4 sm:p-6 rounded-lg shadow-md flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
             <div className="flex items-center space-x-2 sm:space-x-4">
@@ -114,6 +118,7 @@ const NoticeBoard = () => {
             <button
               onClick={uploadNotice}
               className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200 flex items-center space-x-2 w-full sm:w-auto justify-center"
+              disabled={!selectedFile}
             >
               <FaUpload />
               <span>Upload Notice</span>
@@ -130,16 +135,19 @@ const NoticeBoard = () => {
             <li
               key={index}
               className={`bg-gradient-to-r p-4 sm:p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 flex justify-between items-center 
-              ${index % 2 === 0 ? "from-blue-100 to-blue-300 animate-slide-left" : "from-cyan-100 to-cyan-300 animate-slide-right"}`}
+              ${
+                index % 2 === 0
+                  ? "from-blue-100 to-blue-300 animate-slide-left"
+                  : "from-cyan-100 to-cyan-300 animate-slide-right"
+              }`}
             >
               <div className="flex items-center space-x-2 sm:space-x-4">
                 <FaFilePdf className="text-red-500 text-2xl sm:text-3xl" />
                 <a
-                  href={`http://localhost:5000${notice.filePath}`} // Corrected file path
+                  href={`https://drive.google.com/uc?export=download&id=${notice.driveFileId}`} // Correct Google Drive download link
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="underline text-blue-600 hover:text-blue-800 font-semibold text-sm sm:text-base"
-                  download
+                  download={notice.title}
                 >
                   {notice.title}
                 </a>
@@ -148,7 +156,6 @@ const NoticeBoard = () => {
                 <span className="text-sm text-gray-500">
                   {new Date(notice.uploadedAt).toLocaleDateString()}
                 </span>
-                {/* Only show delete button for admin */}
                 {!isAdminLoading && isAdmin && (
                   <button
                     onClick={() => deleteNotice(notice._id)}

@@ -19,7 +19,7 @@ const AdminUserProfile = () => {
   // Fetch user info based on email
   const fetchUserInfo = async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/members?email=${email}`);
+      const response = await axios.get(`https://bps-server.vercel.app/members?email=${email}`);
       const user = response.data.find((user) => user.email === email);
       setUserInfo(user); // Set the user info based on the email
       setMembershipId(user?.membershipId || "");
@@ -45,7 +45,7 @@ const AdminUserProfile = () => {
       }
 
       const response = await axios.patch(
-        `http://localhost:5000/members/${userInfo._id}/admin-update`,
+        `https://bps-server.vercel.app/members/${userInfo._id}/admin-update`,
         { membershipId, status },
         {
           headers: {

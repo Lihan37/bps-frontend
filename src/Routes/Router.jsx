@@ -6,7 +6,6 @@ import {
   import Home from "../Home/Home";
   import Contact from "../Contact/Contact";
   import MemberArea from "../Members/MemberArea";
-  import President from "../Notice/President";
   import NoticeBoard from "../Notice/NoticeBoard";
   import SignUp from "../SignUp/SignUp";
   import Gallery from "../Gallery/Gallery";
@@ -31,10 +30,6 @@ import AdminUserProfile from "../Members/AdminUserProfile";
         {
           path: 'members',
           element: <MemberArea></MemberArea>
-        },
-        {
-          path: '/president',
-          element: <President></President>
         },
         {
           path: '/news',

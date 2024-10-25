@@ -11,7 +11,7 @@ const Notice = () => {
   useEffect(() => {
     const fetchNotices = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/notices"); // Update with your backend URL
+        const response = await axios.get("https://bps-server.vercel.app/notices"); // Update with your backend URL
         setNotices(response.data);
       } catch (err) {
         console.error("Error fetching notices:", err);
@@ -26,10 +26,11 @@ const Notice = () => {
 
   return (
     <div
-      className="bg-white shadow-lg rounded-3xl p-6 max-w-sm h-full"
+      className="bg-white shadow-lg rounded-3xl p-6 w-full lg:max-w-sm mx-auto flex-grow"
       style={{
         boxShadow: "0px 15px 25px rgba(101, 239, 231, 0.43)",
         overflowY: "auto",
+        minHeight: "300px", // Adjusted for responsiveness
         maxHeight: "606px",
       }}
     >
@@ -56,11 +57,11 @@ const Notice = () => {
             >
               <FaFilePdf className="text-red-500 text-xl mr-3" />
               <a
-                href={`http://localhost:5000${notice.filePath}`} // Ensure the correct file path is used
+                href={`https://drive.google.com/uc?id=${notice.driveFileId}&export=download`} // Correct direct download link for Google Drive
                 target="_blank"
                 rel="noopener noreferrer"
                 className="underline text-blue-600 hover:text-blue-800 font-semibold flex-1"
-                download
+                download={notice.title} // Ensure the download is triggered with the correct title
               >
                 {notice.title}
               </a>

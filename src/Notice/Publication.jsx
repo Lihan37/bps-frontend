@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
-import { FaTrashAlt, FaFilePdf, FaUpload } from "react-icons/fa"; // Importing icons
+import { FaTrashAlt, FaFilePdf, FaUpload } from "react-icons/fa";
 import UseAdmin from "../Hooks/UseAdmin"; // Import the admin hook
 
 const Publication = () => {
   const [publications, setPublications] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [isAdmin, isAdminLoading] = UseAdmin(); // Using the admin hook to check admin status
+  const [isAdmin, isAdminLoading] = UseAdmin();
 
   // Fetch publications from the backend
   const fetchPublications = () => {
     axios
-      .get("http://localhost:5000/publications")
+      .get("https://bps-server.vercel.app/publications")
       .then((response) => setPublications(response.data))
       .catch((error) => console.error("Error fetching publications:", error));
   };
@@ -37,12 +37,12 @@ const Publication = () => {
     formData.append("title", selectedFile.name);
 
     axios
-      .post("http://localhost:5000/publications/upload", formData)
+      .post("https://bps-server.vercel.app/publications", formData)
       .then((response) => {
         Swal.fire("Success", response.data.message, "success");
-        setSelectedFile(null); // Clear selected file
-        document.querySelector('input[type="file"]').value = ""; // Clear the file input field
-        fetchPublications(); // Refresh publications list
+        setSelectedFile(null);
+        document.querySelector('input[type="file"]').value = "";
+        fetchPublications();
       })
       .catch((error) => {
         console.error("Error uploading publication:", error);
@@ -50,7 +50,6 @@ const Publication = () => {
       });
   };
 
-  // Delete publication
   const deletePublication = (id) => {
     Swal.fire({
       title: "Are you sure?",
@@ -63,10 +62,10 @@ const Publication = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         axios
-          .delete(`http://localhost:5000/publications/${id}`)
+          .delete(`https://bps-server.vercel.app/publications/${id}`)
           .then((response) => {
             Swal.fire("Deleted!", response.data.message, "success");
-            fetchPublications(); // Refresh publications list
+            fetchPublications();
           })
           .catch((error) => {
             console.error("Error deleting publication:", error);
@@ -115,16 +114,19 @@ const Publication = () => {
             <li
               key={index}
               className={`bg-gradient-to-r p-4 sm:p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 flex justify-between items-center 
-              ${index % 2 === 0 ? "from-blue-100 to-blue-300 animate-slide-left" : "from-cyan-100 to-cyan-300 animate-slide-right"}`}
+              ${
+                index % 2 === 0
+                  ? "from-blue-100 to-blue-300"
+                  : "from-cyan-100 to-cyan-300"
+              }`}
             >
               <div className="flex items-center space-x-2 sm:space-x-4">
                 <FaFilePdf className="text-red-500 text-2xl sm:text-3xl" />
                 <a
-                  href={`http://localhost:5000${publication.filePath}`} // Use the correct file path
+                  href={`https://drive.google.com/uc?export=download&id=${publication.driveFileId}`} // Correct Google Drive download link
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="underline text-blue-600 hover:text-blue-800 font-semibold text-sm sm:text-base"
-                  download // Makes the link downloadable
+                  download={publication.title}
                 >
                   {publication.title}
                 </a>

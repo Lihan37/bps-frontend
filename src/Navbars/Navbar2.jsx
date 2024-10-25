@@ -100,18 +100,8 @@ const Navbar2 = () => {
                 onMouseEnter={cancelHideDropdown}
                 onMouseLeave={hideDropdown}
               >
-                <Link
-                  to="/president"
-                  className="block px-4 py-2 text-gray-800 hover:bg-gray-200 rounded-md transition duration-200"
-                >
-                  President's Message
-                </Link>
-                <Link
-                  to="/history"
-                  className="block px-4 py-2 text-gray-800 hover:bg-gray-200 rounded-md transition duration-200"
-                >
-                  History
-                </Link>
+                
+                
                 <Link
                   to="/mission"
                   className="block px-4 py-2 text-gray-800 hover:bg-gray-200 rounded-md transition duration-200"
@@ -199,18 +189,8 @@ const Navbar2 = () => {
               </button>
               {isMobileDropdownVisible && (
                 <div className="bg-white border rounded-lg shadow-lg p-4 mt-2">
-                  <Link
-                    to="/president"
-                    className="block px-4 py-2 text-gray-800 hover:bg-gray-200 rounded-md transition duration-200"
-                  >
-                    President's Message
-                  </Link>
-                  <Link
-                    to="/history"
-                    className="block px-4 py-2 text-gray-800 hover:bg-gray-200 rounded-md transition duration-200"
-                  >
-                    History
-                  </Link>
+                  
+                  
                   <Link
                     to="/mission"
                     className="block px-4 py-2 text-gray-800 hover:bg-gray-200 rounded-md transition duration-200"

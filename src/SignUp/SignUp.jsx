@@ -200,7 +200,7 @@ const SignUp = () => {
 
       // Save form data to backend
       const response = await axios.post(
-        "http://localhost:5000/members",
+        "https://bps-server.vercel.app/members",
         formData
       );
 

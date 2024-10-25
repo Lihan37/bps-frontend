@@ -13,7 +13,7 @@ const MemberArea = () => {
     // Fetch members from the backend
     const fetchMembers = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/members");
+        const response = await axios.get("https://bps-server.vercel.app/members");
         setMembers(response.data);
         console.log("Fetched members:", response.data);
       } catch (error) {

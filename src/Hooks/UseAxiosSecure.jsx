@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../Providers/AuthProvider";
 
 const axiosSecure = axios.create({
-  baseURL: 'http://localhost:5000/',
+  baseURL: 'https://bps-server.vercel.app/',
   withCredentials: true
 });
 
@@ -17,7 +17,7 @@ const UseAxiosSecure = () => {
     const interceptorsRequest = axiosSecure.interceptors.request.use(
       function (config) {
         const token = localStorage.getItem('access-token');
-        console.log('req stopped by interceptors', token);
+        // console.log('req stopped by interceptors', token);
         config.headers.authorization = `Bearer ${token}`;
         return config;
       },

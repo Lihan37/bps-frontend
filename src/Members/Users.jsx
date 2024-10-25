@@ -16,7 +16,7 @@ const Users = () => {
     const token = localStorage.getItem("access-token");
 
     axios
-      .get("http://localhost:5000/members", {
+      .get("https://bps-server.vercel.app/members", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -76,7 +76,7 @@ const Users = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         axios
-          .patch(`http://localhost:5000/members/${id}/toggle-admin`)
+          .patch(`https://bps-server.vercel.app/members/${id}/toggle-admin`)
           .then((response) => {
             Swal.fire(
               "Success",
@@ -113,7 +113,7 @@ const Users = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         axios
-          .patch(`http://localhost:5000/members/${id}/block`)
+          .patch(`https://bps-server.vercel.app/members/${id}/block`)
           .then((response) => {
             Swal.fire(
               response.data.newStatus ? "Blocked" : "Unblocked",
@@ -145,7 +145,7 @@ const Users = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         axios
-          .delete(`http://localhost:5000/members/${id}`)
+          .delete(`https://bps-server.vercel.app/members/${id}`)
           .then(() => {
             Swal.fire("Deleted!", "The user has been deleted.", "success");
             // Refetch users to update the state

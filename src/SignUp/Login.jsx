@@ -53,7 +53,7 @@ const Login = () => {
       const userCredential = await signIn(email, password);
       const userInfo = { email: userCredential.user.email };
       const tokenResponse = await axios.post(
-        "http://localhost:5000/jwt",
+        "https://bps-server.vercel.app/jwt",
         userInfo
       );
       localStorage.setItem("access-token", tokenResponse.data.token);
