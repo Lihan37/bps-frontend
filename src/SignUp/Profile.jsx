@@ -25,7 +25,7 @@ const Profile = () => {
   const fetchUserInfo = async (userId) => {
     try {
       const response = await axios.get(
-        `https://bps-server.vercel.app/members/user/${userId}`
+        `https://app.bps.org.bd/members/user/${userId}`
       );
       setUserInfo(response.data);
     } catch (error) {
@@ -45,7 +45,7 @@ const Profile = () => {
         return;
       }
 
-      await axios.patch(`https://bps-server.vercel.app/members/${user.uid}/payment`, {
+      await axios.patch(`https://app.bps.org.bd/members/${user.uid}/payment`, {
         ddNo: newTransactionId, // Sending the new transaction ID
       });
       fetchUserInfo(user.uid); // Refetch the user info to reflect the updated transaction ID

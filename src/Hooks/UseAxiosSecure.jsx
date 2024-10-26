@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../Providers/AuthProvider";
 
 const axiosSecure = axios.create({
-  baseURL: 'https://bps-server.vercel.app/',
+  baseURL: 'https://app.bps.org.bd/',
   withCredentials: true
 });
 

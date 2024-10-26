@@ -2,11 +2,9 @@ import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import axios from "axios";
-import { createUserWithEmailAndPassword, } from "firebase/auth"; // Import sendEmailVerification
+import { createUserWithEmailAndPassword } from "firebase/auth"; // Import sendEmailVerification
 import { AuthContext } from "../Providers/AuthProvider";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-
-
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
@@ -56,8 +54,8 @@ const SignUp = () => {
     otherMembership: "",
     additionalParticulars: "",
     payment: {
-      amount: "500",
-      method: "cash",
+      amount: "",
+      method: "",
       ddNo: "",
       date: "",
       bank: "",
@@ -71,7 +69,6 @@ const SignUp = () => {
 
   const { createUser } = useContext(AuthContext);
   const navigate = useNavigate();
-  
 
   // Validation for password (unchanged)
   const validatePassword = (password) => {
@@ -191,6 +188,44 @@ const SignUp = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Education Section Validation
+    const sscFilled =
+      formData.education.ssc && formData.education.ssc.passingYear;
+    const hscOrDiplomaFilled =
+      formData.education.hsc.passingYear ||
+      formData.education.diploma.passingYear;
+
+    // Professional Section Validation
+    const bptFilled =
+      formData.professional.bpt && formData.professional.bpt.passingYear;
+    const mptOrOthersFilled =
+      formData.professional.mpt.passingYear ||
+      formData.professional.others.passingYear;
+
+    if (!sscFilled) {
+      alert("Please fill out SSC in Educational Qualifications.");
+      return;
+    }
+
+    if (!hscOrDiplomaFilled) {
+      alert(
+        "Please fill out at least one of HSC or Diploma in Educational Qualifications."
+      );
+      return;
+    }
+
+    if (!bptFilled) {
+      alert("Please fill out BPT in Professional Qualifications.");
+      return;
+    }
+
+    if (!mptOrOthersFilled) {
+      alert(
+        "Please fill out at least one of MPT or Others in Professional Qualifications."
+      );
+      return;
+    }
+
     // Password validation
     const passwordValidationError = validatePassword(formData.password);
     if (passwordValidationError) {
@@ -200,14 +235,17 @@ const SignUp = () => {
 
     try {
       // Create user and send verification email
-      const userCredential = await createUser(formData.email, formData.password);
-      
+      const userCredential = await createUser(
+        formData.email,
+        formData.password
+      );
+
       // Log form data to verify before sending to backend
       console.log("Submitting form data:", formData);
       formData.userId = userCredential.user.uid;
 
       // Send the form data to the backend
-      await axios.post("https://bps-server.vercel.app/members", formData);
+      await axios.post("https://app.bps.org.bd/members", formData);
 
       Swal.fire({
         title: "Success!",
@@ -229,26 +267,16 @@ const SignUp = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+    <div className="flex justify-center items-center min-h-screen">
       <div className="max-w-6xl bg-white p-10 rounded-lg shadow-xl w-full">
         {/* Secretary General Section */}
         <div className="mb-6 text-center bg-blue-100 p-4 rounded-lg">
           <h2 className="text-3xl font-bold text-blue-700">Membership Form</h2>
-          <p className="text-gray-700 mt-2">
-            The Secretary General <br />
-            Bangladesh Physiotherapy Society (BPS) <br />
-            Sir, <br />
-            Please update my information/enroll me as a primary member of the
-            BPS.
-          </p>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="grid grid-cols-1 md:grid-cols-2 gap-6"
-        >
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Image Upload Section */}
-          <div className="flex flex-col items-center md:col-span-2">
+          <div className="flex flex-col items-center">
             <label className="text-lg font-semibold mb-4">
               Upload Passport Size Photo
             </label>
@@ -273,212 +301,212 @@ const SignUp = () => {
           </div>
 
           {/* Personal Information Fields */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">
-              Name (Mr/Ms/Mrs)
-            </label>
-            <input
-              type="text"
-              id="fullName"
-              value={formData.fullName}
-              onChange={handleInputChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">
-              Father's Name
-            </label>
-            <input
-              type="text"
-              id="fatherName"
-              value={formData.fatherName}
-              onChange={handleInputChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">
-              Mother's Name
-            </label>
-            <input
-              type="text"
-              id="motherName"
-              value={formData.motherName}
-              onChange={handleInputChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">
-              Sex (M/F)
-            </label>
-            <select
-              id="sex"
-              value={formData.sex}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="M">Male</option>
-              <option value="F">Female</option>
-            </select>
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">
-              Date of Birth (DD/MM/YY)
-            </label>
-            <input
-              type="date"
-              id="dateOfBirth"
-              value={formData.dateOfBirth}
-              onChange={handleInputChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">
-              Nationality
-            </label>
-            <input
-              type="text"
-              id="nationality"
-              value={formData.nationality}
-              onChange={handleInputChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">
-              National ID No.
-            </label>
-            <input
-              type="text"
-              id="nationalId"
-              value={formData.nationalId}
-              onChange={handleInputChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">
-              Permanent Address
-            </label>
-            <input
-              type="text"
-              id="permanentAddress"
-              value={formData.permanentAddress}
-              onChange={handleInputChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">
-              Present Address
-            </label>
-            <input
-              type="text"
-              id="presentAddress"
-              value={formData.presentAddress}
-              onChange={handleInputChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">
-              Village
-            </label>
-            <input
-              type="text"
-              id="village"
-              value={formData.village}
-              onChange={handleInputChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">
-              Telephone/ Mobile
-            </label>
-            <input
-              type="tel"
-              id="phoneNumber"
-              value={formData.phoneNumber}
-              onChange={handleInputChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          {/* Membership Type Selection */}
-          <div>
-            <label
-              htmlFor="membership"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Membership Type
-            </label>
-            <select
-              id="membership"
-              value={formData.membership}
-              onChange={(e) =>
-                setFormData({ ...formData, membership: e.target.value })
-              }
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
-            >
-              <option value="General">General Member</option>
-              <option value="Life">Life Member</option>
-            </select>
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">
-              E-mail
-            </label>
-            <input
-              type="email"
-              id="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">
-              Password
-            </label>
-            <div className="relative">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Name (Mr/Ms/Mrs)
+              </label>
               <input
-                type={showPassword ? "text" : "password"} // Toggle input type based on showPassword state
-                id="password"
-                value={formData.password}
+                type="text"
+                id="fullName"
+                value={formData.fullName}
                 onChange={handleInputChange}
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <div
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5 cursor-pointer"
-                onClick={togglePasswordVisibility}
-              >
-                {showPassword ? (
-                  <FaEyeSlash className="text-gray-500" />
-                ) : (
-                  <FaEye className="text-gray-500" />
-                )}
-              </div>
             </div>
-            {passwordError && (
-              <p className="text-red-500 text-sm mt-1">{passwordError}</p>
-            )}
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Father's Name
+              </label>
+              <input
+                type="text"
+                id="fatherName"
+                value={formData.fatherName}
+                onChange={handleInputChange}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Mother's Name
+              </label>
+              <input
+                type="text"
+                id="motherName"
+                value={formData.motherName}
+                onChange={handleInputChange}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Sex (M/F)
+              </label>
+              <select
+                id="sex"
+                value={formData.sex}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="M">Male</option>
+                <option value="F">Female</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Date of Birth (DD/MM/YY)
+              </label>
+              <input
+                type="date"
+                id="dateOfBirth"
+                value={formData.dateOfBirth}
+                onChange={handleInputChange}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Nationality
+              </label>
+              <input
+                type="text"
+                id="nationality"
+                value={formData.nationality}
+                onChange={handleInputChange}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                National ID No.
+              </label>
+              <input
+                type="text"
+                id="nationalId"
+                value={formData.nationalId}
+                onChange={handleInputChange}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Permanent Address
+              </label>
+              <input
+                type="text"
+                id="permanentAddress"
+                value={formData.permanentAddress}
+                onChange={handleInputChange}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Present Address
+              </label>
+              <input
+                type="text"
+                id="presentAddress"
+                value={formData.presentAddress}
+                onChange={handleInputChange}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Village
+              </label>
+              <input
+                type="text"
+                id="village"
+                value={formData.village}
+                onChange={handleInputChange}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Telephone/ Mobile
+              </label>
+              <input
+                type="tel"
+                id="phoneNumber"
+                value={formData.phoneNumber}
+                onChange={handleInputChange}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="membership"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Membership Type
+              </label>
+              <select
+                id="membership"
+                value={formData.membership}
+                onChange={(e) =>
+                  setFormData({ ...formData, membership: e.target.value })
+                }
+                required
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
+              >
+                <option value="General">General Member</option>
+                <option value="Life">Life Member</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                E-mail
+              </label>
+              <input
+                type="email"
+                id="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"} // Toggle input type based on showPassword state
+                  id="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <div
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5 cursor-pointer"
+                  onClick={togglePasswordVisibility}
+                >
+                  {showPassword ? (
+                    <FaEyeSlash className="text-gray-500" />
+                  ) : (
+                    <FaEye className="text-gray-500" />
+                  )}
+                </div>
+              </div>
+              {passwordError && (
+                <p className="text-red-500 text-sm mt-1">{passwordError}</p>
+              )}
+            </div>
           </div>
 
           {/* Educational Qualifications */}
@@ -741,7 +769,10 @@ const SignUp = () => {
             />
 
             <label className="block text-sm font-medium text-gray-700 mt-4">
-              Method
+              Method{" "}
+              <span className="text-xs text-gray-500">
+                *cash/bkash/nagad/any other way*
+              </span>
             </label>
             <input
               type="text"
@@ -838,11 +869,10 @@ const SignUp = () => {
               className="border border-gray-300 rounded-lg p-2 w-full"
             />
           </div>
-
           {/* Sign up button */}
           <button
             type="submit"
-            className="md:col-span-2 w-full mt-6 bg-gradient-to-r from-blue-500 to-teal-400 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:opacity-90 transition-opacity"
+            className="w-full mt-6 bg-gradient-to-r from-blue-500 to-teal-400 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:opacity-90 transition-opacity"
           >
             Sign Up
           </button>

@@ -49,7 +49,7 @@ const Gallery = () => {
         uploadedImages.push({ imageUrl: response.data.data.url });
       }
 
-      await axios.post("https://bps-server.vercel.app/events", {
+      await axios.post("https://app.bps.org.bd/events", {
         eventName,
         paragraph,
         images: uploadedImages,
@@ -80,7 +80,7 @@ const Gallery = () => {
 
   const fetchEvents = async () => {
     try {
-      const response = await axios.get("https://bps-server.vercel.app/events");
+      const response = await axios.get("https://app.bps.org.bd/events");
       setEvents(Array.isArray(response.data) ? response.data : []);
     } catch (err) {
       console.error("Error fetching events:", err);
@@ -93,7 +93,7 @@ const Gallery = () => {
 
   const deleteEvent = async (id) => {
     try {
-      await axios.delete(`https://bps-server.vercel.app/events/${id}`);
+      await axios.delete(`https://app.bps.org.bd/events/${id}`);
       Swal.fire({
         icon: "success",
         title: "Event Deleted!",

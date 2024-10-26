@@ -14,7 +14,7 @@ const NoticeBoard = () => {
   // Fetch notices from the backend
   const fetchNotices = () => {
     axios
-      .get("https://bps-server.vercel.app/notices") // Ensure the correct URL
+      .get("https://app.bps.org.bd/notices") // Ensure the correct URL
       .then((response) => {
         console.log("Fetched notices:", response.data);
 
@@ -48,7 +48,7 @@ const NoticeBoard = () => {
     formData.append("pdf", selectedFile);
 
     axios
-      .post("https://bps-server.vercel.app/notices", formData, {
+      .post("https://app.bps.org.bd/notices", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -77,7 +77,7 @@ const NoticeBoard = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         axios
-          .delete(`https://bps-server.vercel.app/notices/${id}`)
+          .delete(`https://app.bps.org.bd/notices/${id}`)
           .then((response) => {
             Swal.fire("Deleted!", response.data.message, "success");
             fetchNotices(); // Refresh notice list

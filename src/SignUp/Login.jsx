@@ -4,23 +4,24 @@ import Swal from "sweetalert2";
 import axios from "axios";
 import { AuthContext } from "../Providers/AuthProvider";
 import UseAxiosSecure from "../Hooks/UseAxiosSecure";
-import { sendPasswordResetEmail } from "firebase/auth";
-import { getAuth } from "firebase/auth"; // Firebase auth
+import { sendPasswordResetEmail, getAuth } from "firebase/auth";
+import { FaEye, FaEyeSlash } from "react-icons/fa"; // Import eye icons
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false); // Password visibility toggle state
   const { user, signIn, logOut } = useContext(AuthContext);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userInfo, setUserInfo] = useState({ name: "", imageUrl: "" });
   const navigate = useNavigate();
-  const auth = getAuth(); // Firebase auth instance
+  const auth = getAuth();
   const axiosSecure = UseAxiosSecure();
 
   useEffect(() => {
     if (user) {
       setIsLoggedIn(true);
-      fetchUserInfo(user.uid); // Fetch user info based on userId
+      fetchUserInfo(user.uid);
     } else {
       setIsLoggedIn(false);
     }
@@ -30,13 +31,11 @@ const Login = () => {
     try {
       const response = await axiosSecure.get(`/members/user/${userId}`);
       const memberData = response.data;
-
-      const imageUrl =
-        memberData?.imageUrls?.image?.file || ""; // Fetch the main image URL
+      const imageUrl = memberData?.imageUrls?.image?.file || "";
 
       setUserInfo({
         name: memberData.fullName || "User",
-        imageUrl, // Store the main image URL
+        imageUrl,
       });
     } catch (error) {
       Swal.fire({
@@ -52,10 +51,7 @@ const Login = () => {
     try {
       const userCredential = await signIn(email, password);
       const userInfo = { email: userCredential.user.email };
-      const tokenResponse = await axios.post(
-        "https://bps-server.vercel.app/jwt",
-        userInfo
-      );
+      const tokenResponse = await axios.post("https://app.bps.org.bd/jwt", userInfo);
       localStorage.setItem("access-token", tokenResponse.data.token);
       Swal.fire({
         title: "Success!",
@@ -76,7 +72,7 @@ const Login = () => {
   const handleLogout = async () => {
     try {
       await logOut();
-      setUserInfo({ name: "", imageUrl: "" }); // Clear user info
+      setUserInfo({ name: "", imageUrl: "" });
       Swal.fire({
         title: "Logged out!",
         text: "You have been logged out successfully.",
@@ -94,10 +90,9 @@ const Login = () => {
   };
 
   const handleViewProfile = () => {
-    navigate("/profile"); // Navigate to the profile page
+    navigate("/profile");
   };
 
-  // Forgot Password function
   const handleForgotPassword = async () => {
     if (!email) {
       Swal.fire({
@@ -162,16 +157,22 @@ const Login = () => {
                 required
               />
             </div>
-            <div>
+            <div className="relative">
               <input
                 id="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="shadow appearance-none border rounded-full w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 required
               />
+              <div
+                className="absolute inset-y-0 right-3 flex items-center cursor-pointer"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <FaEyeSlash className="text-gray-500" /> : <FaEye className="text-gray-500" />}
+              </div>
             </div>
             <div className="flex items-center justify-between">
               <button

@@ -11,7 +11,7 @@ const Notice = () => {
   useEffect(() => {
     const fetchNotices = async () => {
       try {
-        const response = await axios.get("https://bps-server.vercel.app/notices"); // Update with your backend URL
+        const response = await axios.get("https://app.bps.org.bd/notices"); // Update with your backend URL
         setNotices(response.data);
       } catch (err) {
         console.error("Error fetching notices:", err);

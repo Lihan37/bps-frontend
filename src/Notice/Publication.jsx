@@ -12,7 +12,7 @@ const Publication = () => {
   // Fetch publications from the backend
   const fetchPublications = () => {
     axios
-      .get("https://bps-server.vercel.app/publications")
+      .get("https://app.bps.org.bd/publications")
       .then((response) => setPublications(response.data))
       .catch((error) => console.error("Error fetching publications:", error));
   };
@@ -37,7 +37,7 @@ const Publication = () => {
     formData.append("title", selectedFile.name);
 
     axios
-      .post("https://bps-server.vercel.app/publications", formData)
+      .post("https://app.bps.org.bd/publications", formData)
       .then((response) => {
         Swal.fire("Success", response.data.message, "success");
         setSelectedFile(null);
@@ -51,6 +51,7 @@ const Publication = () => {
   };
 
   const deletePublication = (id) => {
+    console.log("Token:", localStorage.getItem("accessToken")); // Check if the token is available
     Swal.fire({
       title: "Are you sure?",
       text: "This will permanently delete the publication.",
@@ -62,7 +63,11 @@ const Publication = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         axios
-          .delete(`https://bps-server.vercel.app/publications/${id}`)
+          .delete(`https://app.bps.org.bd/publications/${id}`, {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+            },
+          })
           .then((response) => {
             Swal.fire("Deleted!", response.data.message, "success");
             fetchPublications();

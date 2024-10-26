@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const axiosPublic = axios.create({
-    baseURL: 'https://bps-server.vercel.app/', 
+    baseURL: 'https://app.bps.org.bd/', 
     withCredentials: true
 })
 
