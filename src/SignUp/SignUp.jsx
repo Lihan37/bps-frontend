@@ -2,7 +2,11 @@ import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import axios from "axios";
+import { createUserWithEmailAndPassword, } from "firebase/auth"; // Import sendEmailVerification
 import { AuthContext } from "../Providers/AuthProvider";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+
+
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
@@ -63,8 +67,11 @@ const SignUp = () => {
   });
 
   const [passwordError, setPasswordError] = useState("");
+  const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
+
   const { createUser } = useContext(AuthContext);
   const navigate = useNavigate();
+  
 
   // Validation for password (unchanged)
   const validatePassword = (password) => {
@@ -100,6 +107,10 @@ const SignUp = () => {
       ...prevData,
       [id]: value,
     }));
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   const handleTableInputChange = (e, section, field, qualification) => {
@@ -188,37 +199,26 @@ const SignUp = () => {
     }
 
     try {
-      // Create user with Firebase (or any auth system)
-      const userCredential = await createUser(
-        formData.email,
-        formData.password
-      );
-      formData.userId = userCredential.user.uid;
-
+      // Create user and send verification email
+      const userCredential = await createUser(formData.email, formData.password);
+      
       // Log form data to verify before sending to backend
       console.log("Submitting form data:", formData);
+      formData.userId = userCredential.user.uid;
 
-      // Save form data to backend
-      const response = await axios.post(
-        "https://bps-server.vercel.app/members",
-        formData
-      );
+      // Send the form data to the backend
+      await axios.post("https://bps-server.vercel.app/members", formData);
 
-      if (response.status === 201) {
-        Swal.fire({
-          title: "Success!",
-          text: "Account created successfully.",
-          icon: "success",
-          confirmButtonText: "OK",
-        }).then(() => {
-          navigate("/"); // Redirect after success
-        });
-      } else {
-        throw new Error("Unexpected response status.");
-      }
+      Swal.fire({
+        title: "Success!",
+        text: "Account created successfully. Please check your email to verify your account.",
+        icon: "success",
+        confirmButtonText: "OK",
+      }).then(() => {
+        navigate("/"); // Redirect after success
+      });
     } catch (error) {
-      console.error("Error submitting form:", error);
-
+      console.error("Error during sign-up:", error);
       Swal.fire({
         title: "Error!",
         text: error.message || "Failed to submit the form. Please try again.",
@@ -456,40 +456,56 @@ const SignUp = () => {
             <label className="block text-sm font-medium text-gray-700">
               Password
             </label>
-            <input
-              type="password"
-              id="password"
-              value={formData.password}
-              onChange={handleInputChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"} // Toggle input type based on showPassword state
+                id="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <div
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5 cursor-pointer"
+                onClick={togglePasswordVisibility}
+              >
+                {showPassword ? (
+                  <FaEyeSlash className="text-gray-500" />
+                ) : (
+                  <FaEye className="text-gray-500" />
+                )}
+              </div>
+            </div>
             {passwordError && (
               <p className="text-red-500 text-sm mt-1">{passwordError}</p>
             )}
           </div>
 
           {/* Educational Qualifications */}
-          <div className="col-span-2">
+          <div className="col-span-2 overflow-x-auto">
             <h3 className="text-lg font-bold mt-4">
               Educational Qualifications
             </h3>
-            <table className="w-full border mt-2">
+            <table className="min-w-full border mt-2 text-left">
               <thead>
                 <tr>
-                  <th>Degree/Diploma</th>
-                  <th>Passing Year</th>
-                  <th>Name of Board/Faculty</th>
-                  <th>Registration No.</th>
-                  <th>Name of School/Institute</th>
-                  <th>Attach File</th>
+                  <th className="px-4 py-2">Degree/Diploma</th>
+                  <th className="px-4 py-2">Passing Year</th>
+                  <th className="px-4 py-2">Name of Board/Faculty</th>
+                  <th className="px-4 py-2">Registration No.</th>
+                  <th className="px-4 py-2">Name of School/Institute</th>
+                  <th className="px-4 py-2">Attach File</th>
                 </tr>
               </thead>
               <tbody>
                 {["ssc", "hsc", "diploma"].map((qualification) => (
                   <tr key={qualification}>
-                    <td>{qualification.toUpperCase()}</td>
-                    <td>
+                    <td className="px-4 py-2">
+                      {qualification === "diploma"
+                        ? "Diploma in Medical Technology (Physiotherapy)"
+                        : qualification.toUpperCase()}
+                    </td>
+                    <td className="px-4 py-2">
                       <input
                         type="text"
                         className="w-full px-2 py-1 border"
@@ -506,7 +522,7 @@ const SignUp = () => {
                         }
                       />
                     </td>
-                    <td>
+                    <td className="px-4 py-2">
                       <input
                         type="text"
                         className="w-full px-2 py-1 border"
@@ -521,7 +537,7 @@ const SignUp = () => {
                         }
                       />
                     </td>
-                    <td>
+                    <td className="px-4 py-2">
                       <input
                         type="text"
                         className="w-full px-2 py-1 border"
@@ -538,7 +554,7 @@ const SignUp = () => {
                         }
                       />
                     </td>
-                    <td>
+                    <td className="px-4 py-2">
                       <input
                         type="text"
                         className="w-full px-2 py-1 border"
@@ -553,12 +569,12 @@ const SignUp = () => {
                         }
                       />
                     </td>
-                    <td>
+                    <td className="px-4 py-2">
                       <input
                         type="file"
                         onChange={(e) =>
                           handleImageUpload(e, "education", qualification, 5)
-                        } // Adjust size limit to 5MB
+                        }
                         className="border border-gray-300 rounded-lg p-2"
                         accept="image/*"
                       />
@@ -568,8 +584,8 @@ const SignUp = () => {
                           <img
                             src={formData.education[qualification].file}
                             alt={`Certificate Preview ${qualification}`}
-                            className="w-full max-w-md h-auto object-cover rounded-lg shadow-md" // Adjust size for clearer view
-                            style={{ width: "400px", height: "auto" }} // Larger width for bigger preview
+                            className="w-full max-w-md h-auto object-cover rounded-lg shadow-md"
+                            style={{ width: "400px", height: "auto" }}
                           />
                         </div>
                       )}
@@ -581,25 +597,25 @@ const SignUp = () => {
           </div>
 
           {/* Professional Qualifications */}
-          <div className="col-span-2">
+          <div className="col-span-2 overflow-x-auto">
             <h3 className="text-lg font-bold mt-4">
               Professional Qualifications
             </h3>
-            <table className="w-full border mt-2">
+            <table className="min-w-full border mt-2 text-left">
               <thead>
                 <tr>
-                  <th>Degree/Exam</th>
-                  <th>Name of University</th>
-                  <th>Name of Institute</th>
-                  <th>Year of Passing</th>
-                  <th>Attach File</th>
+                  <th className="px-4 py-2">Degree/Exam</th>
+                  <th className="px-4 py-2">Name of University</th>
+                  <th className="px-4 py-2">Name of Institute</th>
+                  <th className="px-4 py-2">Year of Passing</th>
+                  <th className="px-4 py-2">Attach File</th>
                 </tr>
               </thead>
               <tbody>
                 {["bpt", "mpt", "others"].map((qualification) => (
                   <tr key={qualification}>
-                    <td>{qualification.toUpperCase()}</td>
-                    <td>
+                    <td className="px-4 py-2">{qualification.toUpperCase()}</td>
+                    <td className="px-4 py-2">
                       <input
                         type="text"
                         className="w-full px-2 py-1 border"
@@ -616,7 +632,7 @@ const SignUp = () => {
                         }
                       />
                     </td>
-                    <td>
+                    <td className="px-4 py-2">
                       <input
                         type="text"
                         className="w-full px-2 py-1 border"
@@ -633,7 +649,7 @@ const SignUp = () => {
                         }
                       />
                     </td>
-                    <td>
+                    <td className="px-4 py-2">
                       <input
                         type="text"
                         className="w-full px-2 py-1 border"
@@ -650,12 +666,12 @@ const SignUp = () => {
                         }
                       />
                     </td>
-                    <td>
+                    <td className="px-4 py-2">
                       <input
                         type="file"
                         onChange={(e) =>
                           handleImageUpload(e, "professional", qualification, 5)
-                        } // Adjust size limit to 5MB
+                        }
                         className="border border-gray-300 rounded-lg p-2"
                         accept="image/*"
                       />
@@ -665,8 +681,8 @@ const SignUp = () => {
                           <img
                             src={formData.professional[qualification].file}
                             alt={`Professional Certificate Preview ${qualification}`}
-                            className="w-full max-w-md h-auto object-cover rounded-lg shadow-md" // Adjust size for clearer view
-                            style={{ width: "400px", height: "auto" }} // Larger width for bigger preview
+                            className="w-full max-w-md h-auto object-cover rounded-lg shadow-md"
+                            style={{ width: "400px", height: "auto" }}
                           />
                         </div>
                       )}

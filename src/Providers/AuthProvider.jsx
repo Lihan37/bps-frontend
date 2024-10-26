@@ -5,7 +5,7 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut,
-  sendEmailVerification,
+  sendEmailVerification, // Import this
   sendPasswordResetEmail,
 } from "firebase/auth";
 import { app } from "../Firebase/firebase.config";
@@ -19,48 +19,72 @@ const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const axiosPublic = UseAxiosPublic();
 
-  // Create a new user and send email verification
+  // Create a new user, send a verification email, and return user credentials
   const createUser = async (email, password) => {
     setLoading(true);
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-
-    // Send email verification
-    if (user) {
-      await sendEmailVerification(user);
-      setLoading(false);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      await sendEmailVerification(user); // Send verification email after creating the user
       return userCredential;
+    } catch (error) {
+      console.error("Error creating user:", error);
+      throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Sign in method with email verification check
+  // Sign in with email verification check
   const signIn = async (email, password) => {
     setLoading(true);
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
 
-    // Check if the email is verified
-    if (user.emailVerified) {
+      // Check if email is verified
+      if (user.emailVerified) {
+        return userCredential;
+      } else {
+        await signOut(auth); // Sign out the user if email is not verified
+        throw new Error("Please verify your email before signing in.");
+      }
+    } catch (error) {
+      console.error("Error signing in:", error);
+      throw error;
+    } finally {
       setLoading(false);
-      return userCredential;
-    } else {
-      setLoading(false);
-      await signOut(auth); // Log out if not verified
-      throw new Error("Please verify your email before signing in.");
     }
   };
 
-  // Forgot password functionality
-  const resetPassword = (email) => {
-    return sendPasswordResetEmail(auth, email);
-  };
-
-  // Sign out function
-  const logOut = () => {
+  // Log out function
+  const logOut = async () => {
     setLoading(true);
-    return signOut(auth);
+    try {
+      await signOut(auth);
+      localStorage.removeItem("access-token");
+    } catch (error) {
+      console.error("Error signing out:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
 
+  // Reset password function
+  const resetPassword = async (email) => {
+    setLoading(true);
+    try {
+      await sendPasswordResetEmail(auth, email);
+    } catch (error) {
+      console.error("Error sending password reset email:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Firebase auth state observer
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -75,7 +99,6 @@ const AuthProvider = ({ children }) => {
       } else {
         localStorage.removeItem("access-token");
       }
-      // console.log("current User", currentUser);
       setLoading(false);
     });
     return () => {
@@ -89,7 +112,7 @@ const AuthProvider = ({ children }) => {
     createUser,
     signIn,
     logOut,
-    resetPassword,  // Include reset password method
+    resetPassword,
   };
 
   return (
