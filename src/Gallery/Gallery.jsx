@@ -81,7 +81,10 @@ const Gallery = () => {
   const fetchEvents = async () => {
     try {
       const response = await axios.get("https://app.bps.org.bd/events");
-      setEvents(Array.isArray(response.data) ? response.data : []);
+      const fetchedEvents = Array.isArray(response.data) ? response.data : [];
+
+      // Directly set events without additional sorting as backend provides sorted data
+      setEvents(fetchedEvents);
     } catch (err) {
       console.error("Error fetching events:", err);
     }
@@ -117,16 +120,6 @@ const Gallery = () => {
   const totalPages = Math.ceil(events.length / eventsPerPage);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
-
-  const sliderSettings = {
-    dots: true,
-    infinite: true,
-    speed: 500,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    centerMode: true,
-    centerPadding: "0", // Ensures the image is in the center without padding
-  };
 
   return (
     <div className="p-6 max-w-screen-2xl mx-auto">
@@ -225,7 +218,15 @@ const Gallery = () => {
               <h3 className="text-xl font-bold mb-2">{event.eventName}</h3>
               <p className="mb-4">{event.paragraph}</p>
               {event.images && event.images.length > 0 ? (
-                <Slider {...sliderSettings}>
+                <Slider
+                  dots={true}
+                  infinite={event.images.length > 1} // Disable infinite loop when there's only one image
+                  speed={500}
+                  slidesToShow={1}
+                  slidesToScroll={1}
+                  centerMode={true}
+                  centerPadding="0" // Ensures the image is in the center without padding
+                >
                   {event.images.map((img, index) => (
                     <div key={index} className="flex justify-center">
                       <img

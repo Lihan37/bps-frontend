@@ -24,8 +24,11 @@ const Banner2 = () => {
             className="mx-auto mb-4 rounded-lg"
           />
           <p className="text-lg text-center lg:w-3/4 lg:mx-auto">
-            It is a long established fact that a reader will band web page
-            editors now use Lorem Ipsum as their default model text
+            "Physiotherapy is dedicated to enhancing movement, relieving pain,
+            and restoring function. Our goal is to empower individuals on their
+            journey to wellness, using evidence-based treatments and
+            personalized care. Discover how our expertise can support you in
+            achieving a healthier, more active life."
           </p>
         </div>
       </div>

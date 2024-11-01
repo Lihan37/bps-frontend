@@ -26,11 +26,11 @@ const Banner = () => {
         style={{ color: "#FF005C", opacity: 0.7 }}
       >
         <span>Welcome To</span>
-        <br /> Bangladesh Physiotherapy Society
+        <br /> Bangladesh Physiotherapy Society(BPS)
       </h2>
       <p style={{ color: "#020A47", opacity: 0.7 }}>
         <span className="mb-3">
-          Bangladesh Physiotherapy Society( BPS) is the government registered
+          Bangladesh Physiotherapy Society(BPS) is the government registered
           national professional Organization of Physiotherapy Since 1972. It is
           registered from the Office of the Registrar of Joint Stock Companies &
           Firms under the Ministry of Commerce. Govt. Joint Stock Registration

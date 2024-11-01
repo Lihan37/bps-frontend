@@ -9,7 +9,7 @@ const ECmembers = () => {
   const [name, setName] = useState('');
   const [image, setImage] = useState(null);
   const [currentPage, setCurrentPage] = useState(1); // Pagination state
-  const membersPerPage = 10;
+  const membersPerPage = 9;
 
   const axiosSecure = UseAxiosSecure(); // Secure axios instance
   const [isAdmin, isAdminLoading] = UseAdmin(); // Check if user is admin
@@ -24,6 +24,7 @@ const ECmembers = () => {
     'Assistant Organizing Secretary',
     'Treasurer',
     'Education & Student Welfare Secretary',
+    'Cultural & Welfare Secretary',
     'Science & International Affairs Secretary',
     'Research and Publications Secretary',
     'Office Secretary',

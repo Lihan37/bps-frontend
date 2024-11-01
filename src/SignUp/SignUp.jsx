@@ -2,7 +2,6 @@ import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import axios from "axios";
-import { createUserWithEmailAndPassword } from "firebase/auth"; // Import sendEmailVerification
 import { AuthContext } from "../Providers/AuthProvider";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
@@ -188,40 +187,92 @@ const SignUp = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Education Section Validation
-    const sscFilled =
-      formData.education.ssc && formData.education.ssc.passingYear;
-    const hscOrDiplomaFilled =
-      formData.education.hsc.passingYear ||
-      formData.education.diploma.passingYear;
+    const requiredFields = [
+      "fullName",
+      "fatherName",
+      "motherName",
+      "nationalId",
+      "permanentAddress",
+      "presentAddress",
+      "village",
+      "phoneNumber",
+      "email",
+      "password",
+      "payment.amount",
+      "payment.method",
+      "payment.ddNo",
+      "payment.date",
+      "payment.bank",
+      "signatureFile",
+      "agreeToTerms",
+    ];
 
-    // Professional Section Validation
-    const bptFilled =
-      formData.professional.bpt && formData.professional.bpt.passingYear;
-    const mptOrOthersFilled =
-      formData.professional.mpt.passingYear ||
-      formData.professional.others.passingYear;
+    const emptyRequiredFields = requiredFields.filter((field) => {
+      const keys = field.split(".");
+      return (
+        keys.reduce((obj, key) => obj?.[key], formData) === "" ||
+        keys.reduce((obj, key) => obj?.[key], formData) === false
+      );
+    });
 
-    if (!sscFilled) {
-      alert("Please fill out SSC in Educational Qualifications.");
-      return;
-    }
-
-    if (!hscOrDiplomaFilled) {
-      alert(
-        "Please fill out at least one of HSC or Diploma in Educational Qualifications."
+    if (emptyRequiredFields.length) {
+      Swal.fire(
+        "Error",
+        `Please fill all required fields marked with *.`,
+        "error"
       );
       return;
     }
 
-    if (!bptFilled) {
-      alert("Please fill out BPT in Professional Qualifications.");
+    // Check if the passport photo has been uploaded
+    if (formData.imageUrls.length === 0) {
+      Swal.fire("Error", "Please upload a passport size photo.", "error");
       return;
     }
 
-    if (!mptOrOthersFilled) {
-      alert(
-        "Please fill out at least one of MPT or Others in Professional Qualifications."
+    // Educational qualifications validation
+    const educationQualifications = ["ssc", "hsc", "diploma"];
+    const educationIncomplete = educationQualifications.some(
+      (qualification) => {
+        const qualificationData = formData.education[qualification];
+        return (
+          (qualificationData.passingYear ||
+            qualificationData.board ||
+            qualificationData.registrationNo ||
+            qualificationData.school) &&
+          !qualificationData.file
+        );
+      }
+    );
+
+    if (educationIncomplete) {
+      Swal.fire(
+        "Error",
+        "Please attach the file for any educational qualification you have filled.",
+        "error"
+      );
+      return;
+    }
+
+    // Professional qualifications validation
+    const professionalQualifications = ["bpt", "mpt", "others"];
+    const professionalIncomplete = professionalQualifications.some(
+      (qualification) => {
+        const qualificationData = formData.professional[qualification];
+        return (
+          (qualificationData.university ||
+            qualificationData.institute ||
+            qualificationData.passingYear) &&
+          !qualificationData.file
+        );
+      }
+    );
+
+    if (professionalIncomplete) {
+      Swal.fire(
+        "Error",
+        "Please attach the file for any professional qualification you have filled.",
+        "error"
       );
       return;
     }
@@ -278,8 +329,9 @@ const SignUp = () => {
           {/* Image Upload Section */}
           <div className="flex flex-col items-center">
             <label className="text-lg font-semibold mb-4">
-              Upload Passport Size Photo
+              Upload Passport Size Photo <span className="text-red-500">*</span>
             </label>
+
             <input
               type="file"
               onChange={(e) => handleImageUpload(e, "imageUrls", "image", 2)} // 2MB limit for passport photo
@@ -304,7 +356,7 @@ const SignUp = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Name (Mr/Ms/Mrs)
+                Name (Mr/Ms/Mrs) <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -317,7 +369,7 @@ const SignUp = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Father's Name
+                Father's Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -330,7 +382,7 @@ const SignUp = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Mother's Name
+                Mother's Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -343,7 +395,7 @@ const SignUp = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Sex (M/F)
+                Sex (M/F) <span className="text-red-500">*</span>
               </label>
               <select
                 id="sex"
@@ -357,7 +409,7 @@ const SignUp = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Date of Birth (DD/MM/YY)
+                Date of Birth (DD/MM/YY) <span className="text-red-500">*</span>
               </label>
               <input
                 type="date"
@@ -370,7 +422,7 @@ const SignUp = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Nationality
+                Nationality <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -383,7 +435,7 @@ const SignUp = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                National ID No.
+                National ID No. <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -396,7 +448,7 @@ const SignUp = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Permanent Address
+                Permanent Address <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -409,7 +461,7 @@ const SignUp = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Present Address
+                Present Address <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -422,7 +474,7 @@ const SignUp = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Village
+                Village <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -435,7 +487,7 @@ const SignUp = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Telephone/ Mobile
+                Telephone/ Mobile <span className="text-red-500">*</span>
               </label>
               <input
                 type="tel"
@@ -447,11 +499,8 @@ const SignUp = () => {
               />
             </div>
             <div>
-              <label
-                htmlFor="membership"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Membership Type
+              <label className="block text-sm font-medium text-gray-700">
+                Membership Type <span className="text-red-500">*</span>
               </label>
               <select
                 id="membership"
@@ -468,7 +517,7 @@ const SignUp = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                E-mail
+                E-mail <span className="text-red-500">*</span>
               </label>
               <input
                 type="email"
@@ -481,11 +530,11 @@ const SignUp = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Password
+                Password <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <input
-                  type={showPassword ? "text" : "password"} // Toggle input type based on showPassword state
+                  type={showPassword ? "text" : "password"}
                   id="password"
                   value={formData.password}
                   onChange={handleInputChange}
@@ -721,10 +770,13 @@ const SignUp = () => {
             </table>
           </div>
 
-          {/* Other Membership Field */}
-          <div className="col-span-2">
+          {/* Additional Optional Fields */}
+          <div>
             <label className="block text-sm font-medium text-gray-700">
-              Other Physiotherapy Organization Membership
+              Other Physiotherapy Organization Membership{" "}
+              <span className="text-xs text-gray-500">
+                (N/A if you don’t have any)
+              </span>
             </label>
             <input
               type="text"
@@ -732,14 +784,15 @@ const SignUp = () => {
               value={formData.otherMembership}
               onChange={handleInputChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Please specify with membership number"
             />
           </div>
 
-          {/* Additional Particulars */}
-          <div className="col-span-2">
+          <div>
             <label className="block text-sm font-medium text-gray-700">
-              Any other relevant particulars
+              Any other relevant particulars{" "}
+              <span className="text-xs text-gray-500">
+                (N/A if you don’t have any)
+              </span>
             </label>
             <textarea
               id="additionalParticulars"
@@ -752,8 +805,9 @@ const SignUp = () => {
           {/* Payment Details */}
           <div className="col-span-2">
             <h3 className="text-lg font-bold mt-4">Payment Details</h3>
+
             <label className="block text-sm font-medium text-gray-700">
-              Amount (Taka/USD)
+              Amount (Taka/USD) <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -765,12 +819,14 @@ const SignUp = () => {
                   payment: { ...formData.payment, amount: e.target.value },
                 })
               }
+              required
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
 
             <label className="block text-sm font-medium text-gray-700 mt-4">
-              Method{" "}
+              Method <span className="text-red-500">*</span>
               <span className="text-xs text-gray-500">
+                {" "}
                 *cash/bkash/nagad/any other way*
               </span>
             </label>
@@ -784,11 +840,12 @@ const SignUp = () => {
                   payment: { ...formData.payment, method: e.target.value },
                 })
               }
+              required
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
 
             <label className="block text-sm font-medium text-gray-700 mt-4">
-              D.D No / Transaction ID
+              D.D No / Transaction ID <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -800,11 +857,12 @@ const SignUp = () => {
                   payment: { ...formData.payment, ddNo: e.target.value },
                 })
               }
+              required
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
 
             <label className="block text-sm font-medium text-gray-700 mt-4">
-              Date
+              Date <span className="text-red-500">*</span>
             </label>
             <input
               type="date"
@@ -816,11 +874,12 @@ const SignUp = () => {
                   payment: { ...formData.payment, date: e.target.value },
                 })
               }
+              required
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
 
             <label className="block text-sm font-medium text-gray-700 mt-4">
-              Bank
+              Bank <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -832,6 +891,7 @@ const SignUp = () => {
                   payment: { ...formData.payment, bank: e.target.value },
                 })
               }
+              required
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -846,11 +906,13 @@ const SignUp = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, agreeToTerms: e.target.checked })
                 }
+                required
                 className="form-checkbox h-5 w-5 text-blue-600"
               />
               <span className="ml-2 text-gray-700">
                 I declare the above information is true, and I agree to the
-                Constitution & laws of the Association.
+                Constitution & laws of the Association{" "}
+                <span className="text-red-500">*</span>.
               </span>
             </label>
           </div>
@@ -858,17 +920,19 @@ const SignUp = () => {
           {/* Signature Upload */}
           <div className="col-span-2">
             <label className="block text-sm font-medium text-gray-700">
-              Signature of the Applicant
+              Signature of the Applicant <span className="text-red-500">*</span>
             </label>
             <input
               type="file"
               id="signatureFile"
               onChange={(e) =>
                 handleImageUpload(e, "signatureFile", "signatureFile", 1)
-              } // 1MB limit for signature
+              }
+              required
               className="border border-gray-300 rounded-lg p-2 w-full"
             />
           </div>
+
           {/* Sign up button */}
           <button
             type="submit"

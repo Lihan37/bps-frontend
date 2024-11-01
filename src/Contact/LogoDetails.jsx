@@ -23,7 +23,7 @@ const LogoDetails = () => {
 
         <div className="md:w-1/2 text-center md:text-left">
           <h3 className="text-3xl font-bold mb-6 text-blue-600">
-            BANGLADESH PHYSICAL THERAPY ASSOCIATION-BPA
+            BANGLADESH PHYSICAL THERAPY ASSOCIATION (BPA)
           </h3>
           <p className="text-gray-600 italic leading-relaxed text-lg">
             Bangladesh Physical Therapy Association is the only Government

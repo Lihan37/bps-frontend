@@ -53,6 +53,30 @@ const Honorary = () => {
     }
   };
 
+  // Handle deleting an honorary member
+  const handleDeleteHonorary = async (id) => {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'This will permanently delete the honorary member.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const response = await axiosSecure.delete(`/honorary/${id}`);
+          Swal.fire('Deleted!', response.data.message, 'success');
+          fetchHonoraryList(); // Refresh the list after deletion
+        } catch (error) {
+          console.error('Error deleting honorary member:', error);
+          Swal.fire('Error', 'Failed to delete honorary member', 'error');
+        }
+      }
+    });
+  };
+
   useEffect(() => {
     fetchHonoraryList();
   }, []);
@@ -66,7 +90,6 @@ const Honorary = () => {
       {/* Conditionally render form only for admin users */}
       {!isAdminLoading && isAdmin && (
         <form onSubmit={handleAddHonorary} className="mb-8 space-y-4 bg-white p-6 rounded-lg shadow-lg">
-          {/* Year range selection */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="startYear">
@@ -134,15 +157,25 @@ const Honorary = () => {
         <h3 className="text-2xl font-bold mb-4 text-center">Honorary Members</h3>
         {honoraryList.length > 0 ? (
           <ul className="space-y-4">
-            {honoraryList.map((member, index) => (
+            {honoraryList.map((member) => (
               <li
-                key={index}
-                className={`p-4 border rounded-lg shadow-md bg-gradient-to-r from-indigo-500 to-teal-400 text-white flex justify-between items-center 
-                ${index % 2 === 0 ? 'animate-slide-left' : 'animate-slide-right'}`}
+                key={member._id}
+                className="p-4 border rounded-lg shadow-md bg-gradient-to-r from-indigo-500 to-teal-400 text-white flex justify-between items-center"
               >
-                <div className="font-semibold w-1/3">{member.year}</div>
+                <div className="w-1/3 font-semibold">{member.year}</div>
                 <div className="w-1/3 text-center">{member.name}</div>
-                <div className="w-1/3 text-right">{member.position}</div>
+                <div className="w-1/3 text-right flex items-center justify-end space-x-4">
+                  <span>{member.position}</span>
+                  {/* Delete button visible only for admin */}
+                  {!isAdminLoading && isAdmin && (
+                    <button
+                      onClick={() => handleDeleteHonorary(member._id)}
+                      className="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 transition duration-200"
+                    >
+                      Delete
+                    </button>
+                  )}
+                </div>
               </li>
             ))}
           </ul>

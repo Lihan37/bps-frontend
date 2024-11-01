@@ -11,6 +11,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false); // Password visibility toggle state
+  const [showRenewModal, setShowRenewModal] = useState(false); // Modal visibility state
   const { user, signIn, logOut } = useContext(AuthContext);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userInfo, setUserInfo] = useState({ name: "", imageUrl: "" });
@@ -225,6 +226,7 @@ const Login = () => {
               <button
                 className="bg-white bg-opacity-80 text-[#006382] font-bold py-2 px-4 rounded-full focus:outline-none focus:shadow-outline"
                 type="button"
+                onClick={() => setShowRenewModal(true)} // Show the modal
               >
                 Renew Your Membership
               </button>
@@ -232,6 +234,30 @@ const Login = () => {
           </>
         )}
       </form>
+
+      {/* Modal for Renew Membership Info */}
+      {showRenewModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
+            <h3 className="text-xl font-semibold mb-4 text-center">Membership Renewal Information</h3>
+            <p className="text-gray-700 mb-4">
+              To renew your membership, please pay via Bkash or any preferred online/offline service.
+              After making the payment, log in to your profile, add the payment details, and complete
+              the renewal process. For any queries, contact us at:
+            </p>
+            <p className="text-gray-900 font-semibold mb-4">
+              Phone: +8801310099580 <br />
+              Email: bpsinfo.24@gmail.com
+            </p>
+            <button
+              className="bg-[#006382] text-white py-2 px-4 rounded-full w-full font-bold mt-4"
+              onClick={() => setShowRenewModal(false)} // Hide the modal
+            >
+              Go Back
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

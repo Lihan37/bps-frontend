@@ -8,6 +8,8 @@ const Publication = () => {
   const [publications, setPublications] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isAdmin, isAdminLoading] = UseAdmin();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [publicationsPerPage] = useState(5);
 
   // Fetch publications from the backend
   const fetchPublications = () => {
@@ -51,7 +53,6 @@ const Publication = () => {
   };
 
   const deletePublication = (id) => {
-    console.log("Token:", localStorage.getItem("accessToken")); // Check if the token is available
     Swal.fire({
       title: "Are you sure?",
       text: "This will permanently delete the publication.",
@@ -80,6 +81,14 @@ const Publication = () => {
     });
   };
 
+  // Pagination logic
+  const indexOfLastPublication = currentPage * publicationsPerPage;
+  const indexOfFirstPublication = indexOfLastPublication - publicationsPerPage;
+  const currentPublications = publications.slice(indexOfFirstPublication, indexOfLastPublication);
+
+  const totalPages = Math.ceil(publications.length / publicationsPerPage);
+  const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
+
   return (
     <div className="mt-5 px-4 sm:px-6 lg:px-8">
       <h2 className="bg-gradient-to-r from-blue-500 to-cyan-500 p-6 sm:p-8 text-center font-bold text-3xl sm:text-4xl lg:text-5xl text-white max-w-screen-2xl mx-auto rounded-md shadow-lg">
@@ -89,7 +98,6 @@ const Publication = () => {
         {/* Upload Section - Show only for Admin */}
         {!isAdminLoading && isAdmin && (
           <div className="bg-gray-100 p-4 sm:p-6 rounded-lg shadow-md flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
-            {/* Responsive flex and spacing */}
             <div className="flex items-center space-x-2 sm:space-x-4">
               <FaUpload className="text-xl sm:text-2xl text-blue-500" />
               <input
@@ -114,21 +122,16 @@ const Publication = () => {
           Latest Publications
         </h3>
         <ul className="space-y-4">
-          {/* List layout with space between items */}
-          {publications.map((publication, index) => (
+          {currentPublications.map((publication, index) => (
             <li
               key={index}
               className={`bg-gradient-to-r p-4 sm:p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 flex justify-between items-center 
-              ${
-                index % 2 === 0
-                  ? "from-blue-100 to-blue-300"
-                  : "from-cyan-100 to-cyan-300"
-              }`}
+              ${index % 2 === 0 ? "from-blue-100 to-blue-300" : "from-cyan-100 to-cyan-300"}`}
             >
               <div className="flex items-center space-x-2 sm:space-x-4">
                 <FaFilePdf className="text-red-500 text-2xl sm:text-3xl" />
                 <a
-                  href={`https://drive.google.com/uc?export=download&id=${publication.driveFileId}`} // Correct Google Drive download link
+                  href={`https://drive.google.com/uc?export=download&id=${publication.driveFileId}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   download={publication.title}
@@ -153,6 +156,39 @@ const Publication = () => {
             </li>
           ))}
         </ul>
+
+        {/* Pagination Controls */}
+        <div className="flex justify-center items-center mt-6 space-x-2">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            className={`bg-gray-500 text-white px-3 py-1 rounded ${
+              currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button
+              key={i + 1}
+              onClick={() => handlePageChange(i + 1)}
+              className={`px-3 py-1 rounded ${
+                currentPage === i + 1 ? "bg-blue-500 text-white" : "bg-gray-300 text-gray-800"
+              }`}
+            >
+              {i + 1}
+            </button>
+          ))}
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            className={`bg-gray-500 text-white px-3 py-1 rounded ${
+              currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </button>
+        </div>
       </div>
     </div>
   );

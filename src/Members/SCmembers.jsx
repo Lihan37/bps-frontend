@@ -9,7 +9,7 @@ const SCmembers = () => {
   const [name, setName] = useState('');
   const [image, setImage] = useState(null); // Image file
   const [currentPage, setCurrentPage] = useState(1); // Pagination state
-  const membersPerPage = 10; // Number of cards per page
+  const membersPerPage = 9; // Number of cards per page
 
   const axiosSecure = UseAxiosSecure(); // Secure axios instance
   const [isAdmin, isAdminLoading] = UseAdmin(); // Check if user is admin
@@ -24,6 +24,7 @@ const SCmembers = () => {
     'Assistant Organizing Secretary',
     'Treasurer',
     'Education & Student Welfare Secretary',
+    'Cultural & Welfare Secretary',
     'Science & International Affairs Secretary',
     'Research and Publications Secretary',
     'Office Secretary',
@@ -41,58 +42,59 @@ const SCmembers = () => {
       );
       setScMembers(orderedMembers); // Sort SC members by designation
     } catch (error) {
-      console.error('Error fetching SC members:', error);
-      Swal.fire('Error', 'Failed to fetch SC members', 'error');
+      console.error('Error fetching PSC members:', error);
+      Swal.fire('Error', 'Failed to fetch PSC members', 'error');
     }
   };
 
   // Handle image upload to IMGBB and submit form
-  const handleAddMember = async (e) => {
-    e.preventDefault();
+const handleAddMember = async (e) => {
+  e.preventDefault();
 
-    if (!image) {
-      Swal.fire("Error", "Please upload an image", "error");
-      return;
+  if (!image) {
+    Swal.fire("Error", "Please upload an image", "error");
+    return;
+  }
+
+  const imgBBApiKey = import.meta.env.VITE_IMGBB_API_KEY;
+
+  try {
+    // Step 1: Upload image to IMGBB
+    const formData = new FormData();
+    formData.append("image", image);
+
+    const imgBBResponse = await fetch(`https://api.imgbb.com/1/upload?key=${imgBBApiKey}`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    const imgBBData = await imgBBResponse.json();
+
+    if (imgBBData.success) {
+      // Step 2: Use image URL from IMGBB to send to backend
+      const imageUrl = imgBBData.data.url;
+      
+      const newMember = {
+        designation,
+        name,
+        imageUrl, // Store the URL in the database
+      };
+
+      const response = await axiosSecure.post('/scmembers', newMember);
+      Swal.fire("Success", "PSC member added successfully", "success");
+      setDesignation(designations[0]);
+      setName("");
+      setImage(null);
+      fetchScMembers(); // Refresh SC members list
+    } else {
+      Swal.fire("Error", "Image upload failed", "error");
     }
+  } catch (error) {
+    console.error('Error adding PSC member:', error);
+    Swal.fire('Error', 'Failed to add PSC member', 'error');
+  }
+};
 
-    const imgBBApiKey = import.meta.env.VITE_IMGBB_API_KEY;
-
-    try {
-      // Step 1: Upload image to IMGBB
-      const formData = new FormData();
-      formData.append("image", image);
-
-      const imgBBResponse = await fetch(`https://api.imgbb.com/1/upload?key=${imgBBApiKey}`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      const imgBBData = await imgBBResponse.json();
-
-      if (imgBBData.success) {
-        // Step 2: Use image URL from IMGBB to send to backend
-        const imageUrl = imgBBData.data.url;
-        
-        const newMember = {
-          designation,
-          name,
-          imageUrl, // Store the URL in the database
-        };
-
-        const response = await axiosSecure.post('/scmembers', newMember);
-        Swal.fire("Success", response.data.message, "success");
-        setDesignation(designations[0]);
-        setName("");
-        setImage(null);
-        fetchScMembers(); // Refresh SC members list
-      } else {
-        Swal.fire("Error", "Image upload failed", "error");
-      }
-    } catch (error) {
-      console.error('Error adding SC member:', error);
-      Swal.fire('Error', 'Failed to add SC member', 'error');
-    }
-  };
 
   // Handle deleting an SC member
   const handleDeleteMember = async (id) => {
